@@ -10,7 +10,18 @@
 
 ---
 
-## 🔄 二、整體營運流程 (End-to-End Workflow)
+## 💻 二、技術選型與視覺風格總覽 (Tech Stack & Design Styles)
+
+1. **核心架構 (Core Stack)**：**Node.js + Next.js (App Router)** 全棧架構，支援動態 SSR 與高並發處理。
+2. **資料庫層 (Database Layer)**：
+   - **MongoDB**：儲存貓舍資料、商品目錄、訂單與分潤紀錄。
+   - **Redis**：處理購物車 Session、貓舍 QR Code 對照快取、庫存原子扣減（防超賣）。
+3. **後台管理端風格 (Admin UI Style)**：**螞蟻金融風格 (Ant Design Pro)** — 專業深藍/白數據圖表看板、高效率對帳表格與權限管理。
+4. **前台一頁式商城風格 (Storefront UI Style)**：**新潮活潑 (Trendy Modern UI)** — 行動端優先 (Mobile-First)、玻璃擬態卡片 (Glassmorphism)、暖色調活力漸層、極簡 30 秒下單體驗。
+
+---
+
+## 🔄 三、整體營運流程 (End-to-End Workflow)
 
 ```mermaid
 sequenceDiagram
@@ -31,7 +42,7 @@ sequenceDiagram
 
 ---
 
-## 🏠 三、合作貓舍專屬頁面 (Cattery Custom Storefront)
+## 🏠 四、合作貓舍專屬頁面 (Cattery Custom Storefront)
 
 每一家合作貓舍皆擁有**獨立的專屬頁面與專屬 QR Code**，提升貓舍的專業品牌形象：
 - **專屬品牌展示**：自訂貓舍名稱、Logo、介紹與育種理念。
@@ -40,7 +51,7 @@ sequenceDiagram
 
 ---
 
-## 🥩 四、初期商品規劃 (Product Focus)
+## 🥩 五、初期商品規劃 (Product Focus)
 
 第一階段聚焦於高頻回購之核心貓用消耗品，並針對行動裝置進行最佳化購買設計：
 1. **貓砂 (Cat Litter)**：豆腐砂、礦砂、木屑砂等大宗回購品項。
@@ -50,23 +61,23 @@ sequenceDiagram
 
 ---
 
-## 💳 五、購物流程與金流規劃 (Checkout & Payment)
+## 💳 六、購物流程與金流規劃 (Checkout & Payment)
 
 - **最少步驟購物**：掃碼進入 ➔ 點選數量 ➔ 填寫收件資訊 ➔ 付款，全程在單頁 30 秒內完成。
 - **靈活金流支援**：支援信用卡、LINE Pay、超商代碼/條碼與貨到付款，降低下單阻力。
 
 ---
 
-## 📊 六、後台與分潤機制 (Referral & Backoffice)
+## 📊 七、後台與分潤機制 (Referral & Backoffice)
 
 - **權責分工**：
   - **合作貓舍**：負責精準導流、推薦與品質背書。
   - **Petpa 平台**：負責商品備貨、倉儲包裝、金流收款、發票開立與物流配送。
-- **訂單來源追蹤**：系統於 Session / Cookie / 資料庫中永久綁定貓舍代碼（`catteryId`），即使家長未來直接回購，仍能正確歸屬至原貓舍並計算分潤。
+- **訂單來源追蹤**：系統於 Redis / Cookie / 資料庫中永久綁定貓舍代碼（`catteryId`），即使家長未來直接回購，仍能正確歸屬至原貓舍並計算分潤。
 
 ---
 
-## 🎯 七、第一階段 (MVP) 開發重點
+## 🎯 八、第一階段 (MVP) 開發重點
 
 先行完成**可實際運作的基本版本**，確保商業閉環能快速上線驗證：
 1. **貓舍專屬頁面範本**與 QR Code 帶參路由。

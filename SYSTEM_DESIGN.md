@@ -1,121 +1,92 @@
-# 🛠️ Petpa 寵物補給站 - 系統規劃設計 (System Design & Technical Architecture)
+# 🛠️ Petpa 寵物補給站 - 系統規劃設計 (System Design & Architecture)
 
-本文檔詳細說明 **Petpa 合作貓舍一頁式購物平台** 的系統架構、Kubernetes 容器化配置、網域路由、資料庫 Schema（包含貓舍分潤與來源追蹤）以及 API 介面規格。
+本文檔詳細說明 **Petpa 合作貓舍一頁式購物平台** 的系統架構、Node.js + Next.js 全棧選型、MongoDB + Redis 架構、螞蟻金融風後台、新潮前台 UI 風格以及免費設計資源推薦。
 
 ---
 
 ## 🏗️ 1. 系統整體架構 (System Architecture)
 
-系统採用微服務架構，結合前台一頁式購物體驗與後台貓舍來源追蹤：
+系統採用現代化雙資料庫架構（MongoDB 持久化 + Redis 高效快取與 Session 追蹤）：
 
 ```mermaid
 flowchart TD
-    subgraph Client [📱 客戶端 (家長 / 貓舍)]
-        QRCode[📷 掃描貓舍專屬 QR Code] -->|shop.petpa/?cattery=CAT001| FrontEnd[🌐 Petpa 一頁式前端 UI]
+    subgraph Client [📱 前台與後端使用者]
+        User[👨‍👩‍👧 貓咪家長 (新潮一頁式商城)] -->|shop.petpa/?cattery=CAT001| NextApp[🌐 Next.js 全棧應用 / API Routes]
+        Admin[👨‍💼 平台管理員 / 貓舍 (螞蟻金服後台)] -->|shop.petpa/admin| NextApp
     end
 
     subgraph Infrastructure [☸️ K8s Cluster (Namespace: petpa)]
-        Ingress[🚪 NGINX Ingress Controller] -->|shop.petpa| Svc[🔌 Petpa Service :3000]
-        Svc --> Pod[🐳 Petpa Application Pod]
-        Pod <---> DB[(🗄️ Database: MongoDB / Embedded)]
-        Pod <---> Storage[(💾 Storage: PVC 1Gi)]
+        Ingress[🚪 NGINX Ingress Controller] --> NextApp
+        
+        subgraph Data_Layer [🗄️ 資料與快取層]
+            NextApp <---> Redis[(⚡ Redis Cache & Lock & Session)]
+            NextApp <---> Mongo[(🍃 MongoDB Primary Database)]
+            NextApp <---> PVC[(💾 PVC Storage 1Gi)]
+        end
     end
-
-    FrontEnd -->|1. 帶入 catteryId 下單| Ingress
-    Pod -->|2. 紀錄 catteryId 歸屬| DB
-    Pod -->|3. 計算貓舍分潤報表| DB
 ```
 
 ---
 
-## 💻 2. 技術棧與元件職責 (Tech Stack & Responsibilities)
+## 💻 2. 技術棧與元件選型 (Tech Stack Specifications)
 
 | 元件類型 | 選型 / 技術 | 職責與用途 |
 |---|---|---|
-| **前端 (Frontend)** | React / Next.js / HTML5 + Tailwind CSS | 一頁式購物體驗、行動端優先 (Mobile-First)、帶參 QR Code 辨識與動態購物車 |
-| **後端 (Backend)** | Node.js Express | 提供 API 服務、處理訂單成立、來源貓舍綁定、分潤計算邏輯 |
-| **資料庫 (Database)** | MongoDB / PostgreSQL | 儲存 `Cattery` (貓舍)、`Product` (商品)、`Order` (訂單與分潤紀錄) |
-| **容器部署** | Docker + Kubernetes (`petpa` namespace) | 部署檔 `prod/petpa.yaml`，透過 ArgoCD GitOps 自動同步 |
-| **金流介接** | 綠界 ECPay / LINE Pay SDK | 提供信用卡、ATM 轉帳、超商條碼與貨到付款選項 |
+| **核心框架 (Core Framework)** | **Node.js + Next.js (App Router)** | 全棧 React 框架，提供 SSR 快速首頁載入、SEO 最佳化與 API Routes 邏輯處理 |
+| **持久化資料庫 (Primary DB)** | **MongoDB (Mongoose ORM)** | 儲存貓舍資訊 (`Cattery`)、商品目錄 (`Product`)、訂單與分潤 (`Order`) |
+| **快取與記憶體資料庫 (Cache DB)** | **Redis (ioredis / Upstash)** | 1. 貓舍 Referral Code 高速對照快取<br>2. 一頁式購物車與 Session 快取<br>3. 熱門商品庫存快取與防超賣分散式鎖 (Distributed Lock) |
+| **後台 UI (Admin UI)** | **螞蟻金融風格 (Ant Design Pro / Antd)** | 專業數據大盤、對帳表格、權限管理、報表匯出 |
+| **前台 UI (Storefront UI)** | **新潮活潑 (Trendy Glassmorphism UI)** | 玻璃擬態、動態漸層、卡片化選購、微動畫 (Framer Motion) |
+| **容器與部署** | Docker + K8s (`petpa` namespace) | GitOps 自動化部署 (`prod/petpa.yaml` & ArgoCD) |
 
 ---
 
-## 🗄️ 3. 資料庫 Schema 設計 (Data Models)
+## 🎨 3. UI/UX 設計風格與免費資源參考 (Design Styles & Resources)
 
-### 3.1 合作貓舍模型 (`Cattery`)
-```json
-{
-  "_id": "cat_001",
-  "catteryId": "meow_house",
-  "name": "喵喵萌寵專業貓舍",
-  "logoUrl": "https://shop.petpa/cattery/meow_logo.png",
-  "bannerUrl": "https://shop.petpa/cattery/meow_banner.jpg",
-  "description": "致力於育養健康活潑小貓，提供專屬優質幼貓飼料與用品。",
-  "qrCodeUrl": "https://shop.petpa/qrcode/meow_house.png",
-  "commissionRate": 0.15,
-  "bankAccount": {
-    "bankCode": "822",
-    "accountNumber": "123456789012"
-  },
-  "isActive": true,
-  "createdAt": "2026-09-19T00:00:00Z"
-}
-```
+### 3.1 後台管理端：螞蟻金融風格 (Ant Design Style)
+- **視覺特色**：沉穩深藍主色 (`#001529` / `#1890FF`)、簡潔高密度數據表格、清晰圖表看板、響應式側邊導覽欄。
+- **元件庫建議**：[Ant Design for React](https://ant.design/) / [Ant Design Pro Components](https://procomponents.ant.design/)。
 
-### 3.2 商品模型 (`Product`)
-重點涵蓋貓砂、分裝飼料、凍乾零食：
-```json
-{
-  "_id": "prod_catlitter_01",
-  "title": "Petpa 專用除臭豆腐貓砂 (6L)",
-  "category": "cat_litter",
-  "price": 220,
-  "originalPrice": 280,
-  "stock": 500,
-  "isRecommended": true,
-  "images": ["https://shop.petpa/images/litter.jpg"],
-  "specifications": [{ "name": "容量", "value": "6L" }]
-}
-```
+### 3.2 前台一頁式商城：新潮風格 (Trendy Modern UI)
+- **視覺特色**：
+  - **玻璃擬態 (Glassmorphism)**：半透明卡片、柔和陰影與背景模糊 (`backdrop-blur-md`)。
+  - **暖色調活力漸層**：琥珀橘 (`#F59E0B`)、萌粉橘 (`#FF7E5F`) 與清新白，展現寵物溫馨活力感。
+  - **極簡微卡片 (Micro-Cards)**：商品規格一鍵切換、浮動購物車欄與 30 秒快速結帳按鈕。
 
-### 3.3 訂單與來源追蹤模型 (`Order`)
-包含 `catteryId` 與 `commissionAmount` 分潤計算欄位：
-```json
-{
-  "_id": "ord_20260919_1001",
-  "orderNumber": "PETPA-20260919-9921",
-  "catteryId": "meow_house",
-  "customer": {
-    "name": "林小姐",
-    "phone": "0987654321",
-    "address": "新北市板橋區文化路一段 100 號"
-  },
-  "items": [
-    {
-      "productId": "prod_catlitter_01",
-      "title": "Petpa 專用除臭豆腐貓砂 (6L)",
-      "quantity": 3,
-      "unitPrice": 220,
-      "subtotal": 660
-    }
-  ],
-  "shippingFee": 80,
-  "totalAmount": 740,
-  "commissionAmount": 99.0,
-  "paymentStatus": "Paid",
-  "shippingStatus": "Processing",
-  "createdAt": "2026-09-19T11:00:00Z"
-}
-```
+### 3.3 免費資源參考與推薦清單 (Free Resource Recommendations)
+
+| 資源類別 | 推薦名稱 | 連結與說明 |
+|---|---|---|
+| **圖標庫 (Icons)** | **Lucide Icons** | [lucide.dev](https://lucide.dev/) — 免費開源、極簡現代風格 SVG 圖標 |
+| **圖標庫 (Icons)** | **Tabler Icons** | [tabler-icons.io](https://tabler-icons.io/) — 超過 4000+ 免費向量圖標 |
+| **現代字型 (Fonts)** | **Google Fonts Outfit** | [Outfit Font](https://fonts.google.com/specimen/Outfit) — 科技感與現代簡潔兼具的前體字型 |
+| **現代字型 (Fonts)** | **Plus Jakarta Sans** | [Plus Jakarta Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans) — 新潮電商首選圓潤字型 |
+| **UI 元件庫 (UI Framework)** | **Shadcn UI** | [ui.shadcn.com](https://ui.shadcn.com/) — 基於 Tailwind 的可客製化新潮 UI 元件庫 |
+| **高品質圖片 (Photos)** | **Unsplash Pet Collection** | [unsplash.com/s/photos/cat](https://unsplash.com/) — 高畫質免費商業可用貓咪圖片 |
+| **微動畫 (Animations)** | **LottieFiles** | [lottiefiles.com](https://lottiefiles.com/) — 免費可愛貓咪載入與購物車向量動畫 |
+| **配色工具 (Palette)** | **Coolors** | [coolors.co](https://coolors.co/) — 快速生成與對比潮流電商色系 |
 
 ---
 
-## 🔌 4. API 介面規格 (API Specifications)
+## 🗄️ 4. 資料庫 Schema 與 Redis 設計 (Data & Cache Models)
 
-| HTTP Method | API 路徑 | 說明 | 存取權限 |
+### 4.1 Redis Key 規劃
+- **貓舍代碼快取**：`cattery:code:{catteryId}` ➔ JSON (過期時間 24h)
+- **熱門商品庫存快取**：`stock:prod:{productId}` ➔ Integer (Redis `DECRBY` 防超賣)
+- **顧客購物車暫存**：`cart:session:{sessionId}` ➔ Hash (過期時間 7 天)
+
+### 4.2 MongoDB Schema (核心模型)
+- **`Cattery`** (貓舍資料): 包含 `catteryId`, `name`, `logoUrl`, `bannerUrl`, `commissionRate`, `qrCodeUrl`
+- **`Product`** (商品目錄): 包含 `title`, `category` (`cat_litter`, `portioned_food`, `freeze_dried`), `price`, `stock`
+- **`Order`** (訂單與來源): 包含 `orderNumber`, `catteryId`, `customer`, `items`, `totalAmount`, `commissionAmount`, `status`
+
+---
+
+## 🔌 5. API 介面規格 (API Specifications)
+
+| HTTP Method | API 路徑 | 說明 | 快取處理 (Redis) |
 |---|---|---|---|
-| `GET` | `/api/v1/cattery/:catteryId` | 取得貓舍專屬資訊 (Logo, 簡介, 專屬推薦商品) | 公開 (Public) |
-| `GET` | `/api/v1/products` | 取得商品列表 (貓砂、分裝糧、凍乾零食) | 公開 (Public) |
-| `POST` | `/api/v1/orders` | 一頁式送出訂單 (自動綁定帶入之 `catteryId`) | 公開 (Public) |
-| `GET` | `/api/v1/admin/catteries` | 管理後台：檢視所有合作貓舍列表 | 管理員 (Admin) |
-| `GET` | `/api/v1/admin/commission-reports` | 管理後台：查詢每家貓舍之訂單統計與分潤報表 | 管理員 (Admin) |
+| `GET` | `/api/v1/cattery/:catteryId` | 取得貓舍專屬 UI 設定與推薦商品 | 快取於 Redis (24h) |
+| `GET` | `/api/v1/products` | 取得貓砂、分裝糧、凍乾商品列表 | 快取於 Redis (1h) |
+| `POST` | `/api/v1/orders` | 一頁式下單 (鎖定 Redis 庫存，寫入 MongoDB) | Redis 庫存扣減原子操作 |
+| `GET` | `/api/v1/admin/dashboard` | 螞蟻金服風後台：總銷售額與貓舍分潤大盤 | 即時聚合計算 |
