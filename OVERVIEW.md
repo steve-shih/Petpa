@@ -1,79 +1,103 @@
-# 🐾 Petpa 寵物補給站 - 合作貓舍一頁式電商企劃書 (Executive Overview)
+# 🐾 Petpa 寵物補給站 - 合作貓舍一頁式分潤電商企劃書 (Executive Overview)
+
+> **版本**：v1.2 (實作優化版)  
+> **目標**：打造可快速落地、高可行性、雙邊滿意（貓舍獲利、家長方便）的輕量級分潤電商平台。
+
+---
 
 ## 📌 一、企劃核心概念 (Core Concept)
 
-**Petpa 寵物補給站** 旨在打造一個**以「合作貓舍/賣家」為中心**的分潤式一頁式電商購物平台。
+**Petpa 寵物補給站** 是一個以**「合作貓舍 / 賣家導流」**為核心的 B2B2C 一頁式分潤電商平台。
 
-### 核心模式：賣家自助註冊 ✕ 平台統一管貨 ✕ 數據化分潤看板
-1. **賣家/貓舍自助註冊**：賣家註冊帳號後，系統自動生成專屬的一頁式商城與專屬 QR Code。賣家只需自訂品牌 Logo、介紹與收款帳戶，無需煩惱商品採購與庫存。
-2. **平台統一控貨與出貨**：所有商品（貓砂、分裝飼料、凍乾零食）均由 Petpa 平台管理員統一上架、包裝、出貨與開立發票。
-3. **極致美觀的分潤 Dashboard**：貓舍擁有一套螞蟻金融風格 (Ant Design Pro Style) 的專屬分潤看板，即時查看導流訂單、收益對帳與一鍵下載專屬 QR Code 嫁妝卡。
-
----
-
-## 💻 二、技術選型與視覺風格總覽 (Tech Stack & Design Styles)
-
-1. **核心架構 (Core Stack)**：**Node.js + Next.js (App Router)** 全棧架構，支援動態 SSR 與高併發處理。
-2. **資料庫層 (Database Layer)**：
-   - **MongoDB**：儲存貓舍賣家帳號、商品目錄、訂單與分潤紀錄。
-   - **Redis**：處理購物車 Session、貓舍 QR Code 導流對照快取、防超賣分散式鎖。
-3. **貓舍/賣家分潤控制台 (Partner Dashboard)**：**螞蟻金融風格 (Ant Design Pro)** — 美觀的雙色/深藍專業大盤、分潤趨勢圖表、對帳表格與一鍵申請提現功能。
-4. **前台一頁式商城 (Storefront UI Style)**：**新潮活潑 (Trendy Glassmorphism)** — 行動端優先 (Mobile-First)、玻璃擬態卡片、暖色調活力漸層、極簡 30 秒下單體驗。
+### 💡 商業模式四大支柱
+1. **賣家/貓舍自助註冊 (Self-Service Partner Onboarding)**：貓舍線上註冊，系統自動派發專屬網址（如 `shop.petpa/?cattery=meow_house`）與專屬 **QR Code**，貓舍僅需專注於社群推廣與發放「幼貓新家嫁妝卡」。
+2. **平台統一零庫存託管 (Centralized Platform Catalog & Fulfillment)**：所有商品採購、品管、自定義分類上架、訂價、包裝、出貨與開立發票**完全由 Petpa 平台管理員統一負責**。貓舍無須負擔任何囤貨成本與物流壓力。
+3. **動態商品分類 (Dynamic Category Management)**：預設**飼料、清潔、保健品、貓砂**四大基礎品項，管理員可隨時動態擴充自定義分類（如凍乾零食、主食罐頭、貓抓板玩具）。
+4. **多元靈活的分潤引擎 (Flexible Preset Commission Engine)**：內建 **4 大預設分潤規則模式**（固定百分比、分類差異分潤、階梯累計獎勵、新客首單高額獎勵），提供貓舍透明、可預期的收益回饋。
 
 ---
 
-## 🔄 三、整體營運流程 (End-to-End Workflow)
+## 💻 二、技術架構與視覺風格規格 (Tech Stack & UI Specifications)
+
+```mermaid
+graph LR
+    subgraph Frontend [前台與後台 UI]
+        ShopUI[🛍️ 前台一頁式商城<br>新潮 Glassmorphism 視覺]
+        DashUI[📊 貓舍與總管理後台<br>螞蟻金服 Ant Design Pro 視覺]
+    end
+
+    subgraph Backend [全棧服務引擎]
+        NextApp[⚡ Node.js + Next.js App Router]
+    end
+
+    subgraph Database [雲端託管資料庫]
+        Atlas[(🍃 MongoDB Atlas Cloud DB)]
+        Redis[(⚡ Redis Cache & Lock)]
+    end
+
+    ShopUI --> NextApp
+    DashUI --> NextApp
+    NextApp <---> Atlas
+    NextApp <---> Redis
+```
+
+| 架構層級 | 選型技術 | 選型Rationale與優化細節 |
+|---|---|---|
+| **全棧核心** | **Node.js + Next.js (App Router)** | 前後端一體化，高效率 Server Actions 與 API Routes，SEO 友善與快速載入 |
+| **主資料庫** | **MongoDB Atlas (雲端託管)** | 先行採用 MongoDB Atlas 免費/彈性雲端叢集，無須自建 DB 節點，開發與上線最迅速 |
+| **快取與鎖** | **Redis (Upstash / Redis Cloud)** | 處理購物車暫存、貓舍 Referral 綁定 Session、熱門商品庫存原子扣減防超賣 |
+| **貓舍控制台** | **螞蟻金融風格 (Ant Design Pro)** | 深藍與極簡商用質感，提供數據 KPI 大盤、導流趨勢圖、對帳明細與一鍵提現 |
+| **前台商城** | **新潮活潑風格 (Trendy Glassmorphism)** | 行動端優先 (Mobile-First)，半透明玻璃卡片、暖色漸層，30 秒內快速完成一頁下單 |
+
+---
+
+## 🔄 三、全系統完整閉環運作流程 (End-to-End Workflow)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Cattery as 🐱 合作貓舍/賣家
     actor Owner as 👨‍👩‍👧 貓咪家長
-    participant Platform as 🏪 Petpa 平台 (shop.petpa)
+    participant System as 💻 Petpa 系統 (Next.js + Atlas)
+    participant Admin as 👨‍💼 平台管理員
     participant Warehouse as 📦 平台倉庫/物流
 
-    Cattery->>Platform: 1. 線上自助註冊 ➔ 自動生成專屬頁面與 QR Code
-    Cattery->>Owner: 2. 交付貓咪 + 附上專屬 QR Code 嫁妝卡
-    Owner->>Platform: 3. 手機掃描進入貓舍專屬商城頁面
-    Owner->>Platform: 4. 選購商品 (貓砂/分裝糧/凍乾) 並完成一頁式付款
-    Platform->>Warehouse: 5. 系統記錄訂單來源貓舍，平台統一出貨
-    Warehouse->>Owner: 6. 快速宅配/超商送達家長家中
-    Platform->>Cattery: 7. 分潤 Dashboard 即時入帳 ➔ 貓舍申請匯款提現
+    Admin->>System: 1. 上架商品 (飼料/清潔/保健品/貓砂) 並設定分潤規則模式
+    Cattery->>System: 2. 線上自助註冊帳號 ➔ 自動生成專屬頁面與 QR Code
+    Cattery->>Owner: 3. 交付貓咪時附上「專屬 QR Code 嫁妝卡」
+    Owner->>System: 4. 掃碼進入貓舍專屬商城，進行一頁式購物下單
+    System->>Warehouse: 5. 寫入 MongoDB Atlas，自動綁定貓舍算分潤，通知倉庫發貨
+    Warehouse->>Owner: 6. 快速宅配 / 超商取貨送達
+    System->>Cattery: 7. 分潤即時寫入 AntD 看板 ➔ 滿 NT$ 1,000 隨時申請提現
+    Admin->>Cattery: 8. 管理員審核提現並完成銀行轉帳撥款
 ```
 
 ---
 
-## 🏠 四、貓舍自助註冊與專屬頁面 (Partner Registration & Custom Storefront)
+## 📊 四、4 大預設分潤規則模式與分類摘要
 
-- **自助註冊審核**：貓舍線上填寫名稱、聯絡資訊與匯款帳號，系統審核後自動開通。
-- **專屬品牌展示**：自訂貓舍名稱、Logo、品牌簡介與育種理念。
-- **專屬工具包**：一鍵下載高清專屬 QR Code 圖檔（供印製嫁妝包卡片），一鍵複製推薦連結。
+```mermaid
+pie title 預設分潤模式多元支援
+    "1. 固定百分比模式 (Fixed %)" : 25
+    "2. 按商品分類差異模式 (Category-Based)" : 25
+    "3. 階梯累計獎勵模式 (Tiered Volume)" : 25
+    "4. 新客首單高額模式 (First-Time Bounty)" : 25
+```
 
----
-
-## 🥩 五、商品統一管理 (Centralized Catalog Management)
-
-- **商品完全由平台管理員統一控管**：賣家無需上架商品或負擔庫存壓力。
-- **初期三大核心品項**：
-  1. **貓砂 (Cat Litter)**：豆腐砂、礦砂等大宗回購品項。
-  2. **分裝飼料 (Portioned Cat Food)**：鮮採小包裝幼貓與成貓主糧。
-  3. **凍乾零食 (Freeze-Dried Treats)**：原肉高蛋白零食與獎勵品。
-
----
-
-## 📊 六、美觀的貓舍分潤控制台 (Ant Design Partner Dashboard)
-
-專為貓舍/賣家設計的螞蟻金融風數據大盤：
-- **四大核心 KPI 卡片**：本月預估分潤、可提領餘額、總導流訂單數、顧客回購率。
-- **動態圖表看板**：每日/每週導流銷售趨勢折線圖、熱門回購商品圓餅圖。
-- **分潤明細與提現**：每筆訂單分潤歷程清晰透明，支援一鍵申請提現至指定銀行帳戶。
+1. **固定百分比模式**：全站統一特定 %（如 15%），簡單好算。
+2. **按商品分類差異模式**：
+   - 💊 **保健品**：**25%**（高毛利高獎勵）
+   - 🧼 **清潔用品**：**20%**
+   - 🍚 **飼料糧食**：**15%**
+   - 🏖️ **貓砂大宗**：**10%**（跑量低毛利）
+3. **階梯累計獎勵模式**：當月導流越高比率越高（如 12% ➔ 15% ➔ 18%）。
+4. **新客首單高額模式**：家長首單給予高額獎勵（20%），後續回購維持固定比率（12%）。
 
 ---
 
-## 🎯 七、第一階段 (MVP) 開發重點
+## 🎯 五、第一階段 (MVP) 開發與上線里程碑
 
-1. **貓舍自助註冊與賣家帳號管理**。
-2. **貓舍專屬頁面動態生成與 QR Code 導流**。
-3. **平台管理員商品統一上架與庫存管理**。
-4. **一頁式購物車與金流串接**。
-5. **螞蟻金融風貓舍分潤控制台與訂單來源追蹤**。
+1. **MongoDB Atlas 資料庫建立與連線配置**（`MONGODB_URI` 部署環境變數設定）。
+2. **賣家自助註冊與 Ant Design 風格分潤控制台**（KPI 卡片、導流趨勢折線圖、提現功能）。
+3. **平台管理員控制台**（自定義動態商品分類、商品管理、4 大分潤規則切換）。
+4. **新潮 Glassmorphism 前台一頁式商城**（貓舍專屬頁面標頭、動態分類頁籤、購物車、綠界金流串接）。
