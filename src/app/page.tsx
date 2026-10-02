@@ -139,7 +139,7 @@ export default function FlashyLandingPage() {
 function FeatureCard({ icon, title, desc, color }: { icon: string, title: string, desc: string, color: string }) {
   return (
     <div className="feature-card" style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 24, padding: 32, border: '1px solid rgba(255,255,255,0.05)' }}>
-      <div style={{ width: 60, height: 60, borderRadius: 16, background: \`\${color}20\`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, marginBottom: 24 }}>
+      <div style={{ width: 60, height: 60, borderRadius: 16, background: color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, marginBottom: 24 }}>
         {icon}
       </div>
       <h3 style={{ fontSize: 22, fontWeight: 800, marginBottom: 12, color: 'white' }}>{title}</h3>
