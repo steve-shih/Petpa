@@ -2,6 +2,7 @@
 
 import { orders, trendData, profitSplitConfig, products, catteries } from '@/lib/mock-data';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import SystemArchButton from '@/components/SystemArchButton';
 
 export default function AdminDashboard() {
   const totalSales = orders.reduce((s, o) => s + o.totalAmount, 0);
@@ -16,6 +17,34 @@ export default function AdminDashboard() {
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', margin: '0 0 4px' }}>📊 營運數據總覽 Dashboard</h1>
         <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0 }}>即時全站銷售額、三方分潤算式與營業稅估算統計</p>
+      </div>
+
+      {/* Admin Pages Explanation Tour */}
+      <div style={{ background: 'linear-gradient(135deg, #1E293B, #0F172A)', borderRadius: '16px', padding: '20px', marginBottom: '24px', color: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          💡 平台管理員 (Admin) 系統操作導覽手冊
+        </h2>
+        <p style={{ fontSize: '13px', color: '#94A3B8', margin: '0 0 16px', lineHeight: 1.6 }}>
+          歡迎來到 Petpa 管理後台！為了讓您更順暢地操作，以下是左側選單各項功能的簡要說明：
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', lineHeight: 1.6 }}>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontWeight: 700, color: '#38BDF8', marginBottom: '4px' }}>🐱 賣家與 KOL 管理</div>
+            在這裡審核新註冊的實體貓舍與社群網紅 (如：美心)。可核准他們專屬的 /shop/:slug 一頁式賣場，並管理他們的特寵證照與狀態。
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontWeight: 700, color: '#34D399', marginBottom: '4px' }}>📦 商品管理與審核</div>
+            這是平台商品總庫 (PIM)。您可以新增商品、上傳 PDF 檢驗報告，並**指定商品要開放給哪些賣家上架**。賣家自行提報的特殊商品也在這裡審批。
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontWeight: 700, color: '#FBBF24', marginBottom: '4px' }}>🏬 進銷存 (ERP) 庫存</div>
+            最嚴謹的進銷存系統。每一次進貨、買家購買扣庫存、或者退貨補回，都會在這裡留下不可竄改的流水帳，確保庫存帳務精準。
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontWeight: 700, color: '#F87171', marginBottom: '4px' }}>🔄 售後退貨管理 & 🛡️ 審計日誌</div>
+            處理買家的退貨申請，同意後可自動將商品補回 ERP；**審計日誌**則記錄全站所有管理員與賣家的登入、修改、操作軌跡，防範內部風險。
+          </div>
+        </div>
       </div>
 
       {/* KPI Cards Row 1 */}
@@ -108,6 +137,7 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </div>
+      <SystemArchButton />
     </div>
   );
 }

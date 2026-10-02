@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { adminBankAccount } from '@/lib/mock-data';
 
 export default function CheckoutPage() {
@@ -10,6 +10,22 @@ export default function CheckoutPage() {
   const [buyerAccount, setBuyerAccount] = useState({ name: '陳小美', phone: '0988-123-456', email: 'may@example.com', address: '台北市信義區忠孝東路五段 100 號 8 樓' });
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '' });
   const [isPaid, setIsPaid] = useState(false);
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState('ATM 銀行匯款 (管理員指定對帳戶頭)');
+  const [isProcessingECPay, setIsProcessingECPay] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+
+  useEffect(() => {
+    const savedItems = localStorage.getItem('petpa_cart_items');
+    const savedTotal = localStorage.getItem('petpa_cart_total');
+    if (savedItems) {
+      try { setCartItems(JSON.parse(savedItems)); } catch (e) {}
+    }
+    if (savedTotal) {
+      setCartTotal(Number(savedTotal));
+    }
+  }, []);
 
   const handleQuickBuyerLogin = () => {
     setIsLoggedIn(true);
@@ -26,8 +42,47 @@ export default function CheckoutPage() {
       alert('⚠️ 請填寫完整收件人姓名、電話與配送地址！');
       return;
     }
+    
+    if (paymentMethod === '信用卡 (Visa / Master / JCB)') {
+      setIsProcessingECPay(true);
+      setTimeout(() => {
+        setIsProcessingECPay(false);
+        setPaymentError('異常：請檢查金流網路連線或稍後再試 (Error Code: 502)');
+      }, 1500); // Simulate ECPay redirection and error
+      return;
+    }
+    
     setIsPaid(true);
   };
+
+  if (isProcessingECPay) {
+    return (
+      <div style={{ background: 'var(--color-bg)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ background: 'white', borderRadius: 'var(--radius-2xl)', padding: 40, textAlign: 'center', maxWidth: 440, boxShadow: 'var(--shadow-xl)', border: '1px solid var(--color-border-light)' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>💳</div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', margin: '0 0 8px' }}>正在轉跳至 綠界金流 (ECPay) 授權閘道...</h1>
+          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: '0 0 20px' }}>請勿關閉視窗，系統處理中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (paymentError) {
+    return (
+      <div style={{ background: 'var(--color-bg)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ background: 'white', borderRadius: 'var(--radius-2xl)', padding: 40, textAlign: 'center', maxWidth: 440, boxShadow: 'var(--shadow-xl)', border: '1px solid var(--color-danger)' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#FEE2E2', color: '#EF4444', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, marginBottom: 16 }}>
+            ✕
+          </div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', margin: '0 0 8px' }}>綠界金流連線失敗</h1>
+          <p style={{ fontSize: 14, color: 'var(--color-danger)', margin: '0 0 20px', fontWeight: 600 }}>{paymentError}</p>
+          <button className="btn-admin btn-admin-outline" onClick={() => setPaymentError('')} style={{ width: '100%', padding: '12px 24px', fontSize: 14 }}>
+            返回選擇其他付款方式 (如 ATM 匯款)
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isPaid) {
     return (
@@ -96,16 +151,23 @@ export default function CheckoutPage() {
             <span>💳</span> 付款方式 (第三方金流串接)
           </h2>
           {[
-            { name: '信用卡 (Visa / Master / JCB)', status: '綠界金流實體環境 (原型展示區灰色停用)', disabled: true },
+            { name: '信用卡 (Visa / Master / JCB)', status: '綠界金流線上刷卡', disabled: false },
             { name: 'LINE Pay 一鍵付款', status: '沙盒測試環境 (原型展示區灰色停用)', disabled: true },
-            { name: '超商代碼 / 條碼繳費', status: '藍新金流環境 (原型展示區灰色停用)', disabled: true },
+            { name: '超商代碼 / 條碼繳費', status: '綠界超商代碼 (原型展示區灰色停用)', disabled: true },
             { name: 'ATM 銀行匯款 (管理員指定對帳戶頭)', status: `匯至 ${adminBankAccount.bankName} (${adminBankAccount.accountNumber})`, disabled: false, isAtm: true },
             { name: '模擬快速即時下單 (Prototype Live)', status: '開放測試下單體驗', disabled: false },
           ].map((item, i) => (
             <div key={item.name} style={{ borderBottom: i < 4 ? '1px solid var(--color-border-light)' : 'none', padding: '10px 0' }}>
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: item.disabled ? 'not-allowed' : 'pointer', opacity: item.disabled ? 0.5 : 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <input type="radio" name="payment" defaultChecked={item.isAtm} disabled={item.disabled} style={{ accentColor: 'var(--color-brand-500)', width: 16, height: 16 }} />
+                  <input 
+                    type="radio" 
+                    name="payment" 
+                    checked={paymentMethod === item.name} 
+                    onChange={() => setPaymentMethod(item.name)}
+                    disabled={item.disabled} 
+                    style={{ accentColor: 'var(--color-brand-500)', width: 16, height: 16 }} 
+                  />
                   <span style={{ fontSize: 13.5, fontWeight: item.disabled ? 500 : 700, color: item.disabled ? 'var(--color-text-muted)' : 'var(--color-text)' }}>{item.name}</span>
                 </div>
                 <span style={{ fontSize: 11, background: item.disabled ? '#E2E8F0' : '#DCFCE7', color: item.disabled ? '#64748B' : '#15803D', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>
@@ -129,20 +191,28 @@ export default function CheckoutPage() {
           <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>📋</span> 訂單金額明細
           </h2>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8, color: 'var(--color-text-secondary)' }}>
-            <span>商品金額小計</span><span>NT$ 1,260</span>
+          {cartItems.length > 0 ? cartItems.map((item, idx) => (
+            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8, color: 'var(--color-text)' }}>
+              <span>{item.product.title} x {item.qty}</span>
+              <span>NT$ {(item.product.sellingPrice * item.qty).toLocaleString()}</span>
+            </div>
+          )) : (
+            <div style={{ fontSize: 13, marginBottom: 8, color: 'var(--color-text-secondary)' }}>尚無商品</div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8, marginTop: 12, color: 'var(--color-text-secondary)' }}>
+            <span>商品金額小計</span><span>NT$ {cartTotal.toLocaleString()}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8, color: 'var(--color-text-secondary)' }}>
             <span>運費小計</span><span style={{ color: 'var(--color-success)', fontWeight: 600 }}>免運費</span>
           </div>
           <div style={{ borderTop: '1px dashed var(--color-border)', paddingTop: 14, marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <span style={{ fontSize: 15, fontWeight: 700 }}>實付總金額</span>
-            <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-danger)', fontFamily: "'Outfit', sans-serif" }}>NT$ 1,260</span>
+            <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-danger)', fontFamily: "'Outfit', sans-serif" }}>NT$ {cartTotal.toLocaleString()}</span>
           </div>
         </div>
 
         <button className="btn-primary" onClick={handleCreateOrder} style={{ width: '100%', padding: '16px', fontSize: 16, borderRadius: 'var(--radius-lg)' }}>
-          {isLoggedIn ? '確認付款下單 NT$ 1,260' : '🔒 登入買家帳號並進行下單 (NT$ 1,260)'}
+          {isLoggedIn ? `前往結帳 (使用 ${paymentMethod.split(' ')[0]}) NT$ ${cartTotal.toLocaleString()}` : `🔒 登入買家帳號並進行下單 (NT$ ${cartTotal.toLocaleString()})`}
         </button>
         <p style={{ textAlign: 'center', fontSize: 11.5, color: 'var(--color-text-muted)', marginTop: 14 }}>
           ⚠️ 買家可自由瀏覽賣場與加入購物車，實際結帳需進行授權登入驗證。

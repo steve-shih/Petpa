@@ -36,8 +36,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
           ))}
         </nav>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <Link href="/admin/dashboard" style={{ fontSize: 12 }}>🔄 切換至管理員後台</Link>
-          <Link href="/login" style={{ fontSize: 12, color: '#ff7875' }}>🚪 登出</Link>
+          <Link href="/login" style={{ fontSize: 12, color: '#ff7875', padding: '16px', display: 'block', textAlign: 'center' }}>🚪 登出系統</Link>
         </div>
       </div>
       <div className="admin-content" style={{ flex: 1 }}>

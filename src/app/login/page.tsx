@@ -5,8 +5,8 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
-  const [email, setEmail] = useState('test@petpa.tw');
-  const [password, setPassword] = useState('test1234');
+  const [email, setEmail] = useState('admin@petpa.tw');
+  const [password, setPassword] = useState('admin123');
   const [role, setRole] = useState<'admin' | 'seller'>('admin');
 
   return (
@@ -27,7 +27,7 @@ export default function LoginPage() {
           <div style={{ display: 'flex', background: 'var(--color-bg)', padding: 4, borderRadius: 'var(--radius-md)', marginBottom: 20, border: '1px solid var(--color-border-light)' }}>
             <button
               type="button"
-              onClick={() => { setRole('admin'); setEmail('test@petpa.tw'); }}
+              onClick={() => { setRole('admin'); setEmail('admin@petpa.tw'); setPassword('admin123'); }}
               style={{
                 flex: 1,
                 padding: '8px 0',
@@ -45,7 +45,7 @@ export default function LoginPage() {
             </button>
             <button
               type="button"
-              onClick={() => { setRole('seller'); setEmail('seller@meow.tw'); }}
+              onClick={() => { setRole('seller'); setEmail('meixin@petpa.tw'); setPassword('meixin8888password'); }}
               style={{
                 flex: 1,
                 padding: '8px 0',

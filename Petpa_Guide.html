@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petpa 系統操作指南</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .section {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .section-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #f97316;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #ea580c;
+        }
+        code {
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #e11d48;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #e2e8f0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🐾 Petpa 寵物系統操作指南</h1>
+        <p>這是一份為買家、合作商家（貓舍）以及平台管理員（後臺）準備的快速上手教學。</p>
+        <p>目前系統已經在 <strong>http://localhost:3000</strong> 運行中！</p>
+    </div>
+
+    <div class="section">
+        <div class="section-icon">🛍️</div>
+        <h2>一、買家（消費者）如何使用？</h2>
+        <p>買家可以透過專屬的貓舍推廣連結進入賣場，進行商品瀏覽與結帳。</p>
+        <ol>
+            <li><strong>進入賣場：</strong> 開啟連結 <code>http://localhost:3000/shop/cattery-a</code> (可以將 cattery-a 換成對應貓舍的代號)。</li>
+            <li><strong>瀏覽商品與活體：</strong> 在賣場內，您可以切換標籤來瀏覽不同分類的商品（例如幼貓展示牆、貓砂、清潔用品等）。</li>
+            <li><strong>加入購物車：</strong> 點擊商品卡片上的「+ 加入購物車」，然後可以增減數量。</li>
+            <li><strong>前往結帳：</strong> 畫面底部會浮現購物車總計，點擊「前往結帳 →」按鈕。</li>
+            <li><strong>完成下單：</strong> 進入結帳頁面後，您可以點擊「🔑 買家登入」進行一鍵快速登入，接著選擇付款方式並點擊「確認付款下單」。</li>
+        </ol>
+        <a href="http://localhost:3000" target="_blank" class="btn">前往首頁逛逛</a>
+    </div>
+
+    <div class="section">
+        <div class="section-icon">🏪</div>
+        <h2>二、商家（貓舍/合作夥伴）如何使用？</h2>
+        <p>商家可以管理自己的專屬賣場，並查看透過自己推廣連結產生的訂單（分潤或業績）。</p>
+        <ol>
+            <li><strong>進入商家後台：</strong> 開啟連結 <code>http://localhost:3000/seller/dashboard</code>。</li>
+            <li><strong>查看儀表板：</strong> 在這裡您可以看到本月的業績、點擊量、以及轉換率等數據。</li>
+            <li><strong>管理商品上架：</strong> 商家可以決定要不要將平台方提供的商品上架到自己的專屬賣場，並可以自訂「推薦標籤」及「自訂價格」。</li>
+            <li><strong>幼貓活體上架：</strong> 您可以在後台管理目前正在尋找新家的貓咪，上傳血統證書或合約 PDF。</li>
+            <li><strong>查看訂單：</strong> 在「我的分潤訂單」中追蹤已成立的買家訂單。</li>
+        </ol>
+        <a href="http://localhost:3000/seller/dashboard" target="_blank" class="btn">前往商家後台</a>
+    </div>
+
+    <div class="section">
+        <div class="section-icon">⚙️</div>
+        <h2>三、總管理員（平台後臺）如何使用？</h2>
+        <p>總管理員擁有最高權限，負責全站的商品資料庫維護、商家管理以及訂單出貨。</p>
+        <ol>
+            <li><strong>進入總管理後台：</strong> 開啟連結 <code>http://localhost:3000/admin/dashboard</code>。</li>
+            <li><strong>商品資料庫 (PIM)：</strong> 您可以統一新增、編輯、下架所有商品。這些商品可供各合作貓舍挑選上架到他們的專屬頁面。</li>
+            <li><strong>管理合作貓舍：</strong> 在「合作貓舍管理」頁面，您可以新增新的合作夥伴，配置分潤 % 數，並設定他們的提領帳戶。</li>
+            <li><strong>訂單處理與出貨：</strong> 所有成立的訂單都會匯集至「全站訂單總覽」，管理員可在此核對買家匯款，並更改訂單狀態為「已出貨」。</li>
+            <li><strong>全站財務與報表：</strong> 追蹤平台的總營收、待撥款給商家的分潤金額。</li>
+        </ol>
+        <a href="http://localhost:3000/admin/dashboard" target="_blank" class="btn">前往總管理後台</a>
+    </div>
+
+    <div class="section">
+        <div class="section-icon">💡</div>
+        <h2>其他注意事項</h2>
+        <ul>
+            <li><strong>開發環境：</strong> 系統目前正運行於您的本機背景，如果您重新開機，記得輸入 <code>npm run dev</code> 重新啟動。</li>
+            <li><strong>資料庫連線：</strong> 系統使用 MongoDB 作為資料庫（預設連線為 <code>mongodb://mongo:27017/PETPA</code>）。若有部署需求可串接 Mongo Atlas。</li>
+        </ul>
+    </div>
+
+</body>
+</html>

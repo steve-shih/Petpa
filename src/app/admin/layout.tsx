@@ -15,6 +15,7 @@ const menuItems = [
   { key: '/admin/reports', label: '📅 每月對帳報表', },
   { key: '/admin/social', label: '📱 社群製圖', },
   { key: '/admin/audit-logs', label: '🛡️ 全站審計日誌', },
+  { key: '/admin/messages', label: '📬 訊息與審批通知', },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -45,11 +46,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <Link href="/seller/dashboard" style={{ fontSize: 12 }}>
-            🔄 切換至賣家控制台
-          </Link>
-          <Link href="/login" style={{ fontSize: 12, color: '#ff7875' }}>
-            🚪 登出
+          <Link href="/login" style={{ fontSize: 12, color: '#ff7875', padding: '16px', display: 'block', textAlign: 'center' }}>
+            🚪 登出系統
           </Link>
         </div>
       </div>

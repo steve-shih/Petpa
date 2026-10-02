@@ -589,6 +589,24 @@ export const catteries: Cattery[] = [
     address: '社群推廣工作室',
     isApproved: true,
   },
+  {
+    _id: 'cat_006',
+    catteryId: 'meixin_bakery',
+    slug: 'meixin',
+    name: '美心寵物選物',
+    sellerType: 'influencer',
+    logoUrl: '',
+    bannerPreset: 'rose-gold',
+    themeColor: '#F43F5E',
+    description: '美心專屬的寵物精選賣場，為您帶來最高品質的貓咪主食罐與凍乾零食，粉絲專屬優惠！',
+    loginEmail: 'meixin@petpa.tw',
+    initialPassword: 'meixin8888password',
+    licenseNumber: '免特寵字號',
+    enableKittens: false,
+    contactPhone: '0977-888-999',
+    address: '台北市信義區',
+    isApproved: true,
+  },
 ];
 
 // ==================== 退貨單假資料 ====================

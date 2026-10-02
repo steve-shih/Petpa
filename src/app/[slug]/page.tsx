@@ -10,6 +10,7 @@ export default function DedicatedShopPage({ params }: { params: Promise<{ slug: 
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [cart, setCart] = useState<Record<string, number>>({});
   const [selectedKitten, setSelectedKitten] = useState<Kitten | null>(null);
+  const [showLiveStream, setShowLiveStream] = useState<boolean>(true);
 
   // 根據 URL 比對 slug 或 fallback
   const cattery = useMemo(() => {
@@ -284,6 +285,39 @@ export default function DedicatedShopPage({ params }: { params: Promise<{ slug: 
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating PETLIVE Widget */}
+      {showLiveStream && (
+        <div style={{ position: 'fixed', bottom: cartCount > 0 ? 110 : 20, right: 20, zIndex: 999, width: 280, background: '#000', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '2px solid #8B5CF6' }}>
+          {/* Header */}
+          <div style={{ background: 'linear-gradient(90deg, #6366F1, #8B5CF6)', padding: '6px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ display: 'inline-block', width: 8, height: 8, background: '#EF4444', borderRadius: '50%', boxShadow: '0 0 8px #EF4444' }}></span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: 'white', letterSpacing: 0.5 }}>PETLIVE</span>
+            </div>
+            <button onClick={() => setShowLiveStream(false)} style={{ background: 'rgba(0,0,0,0.3)', border: 'none', color: 'white', width: 22, height: 22, borderRadius: '50%', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          </div>
+          {/* Player Box (Black box if offline, or pseudo live) */}
+          <div style={{ width: '100%', height: 158, background: '#111', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
+            {cattery.catteryId === 'meixin_bakery' ? (
+              <>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>🎥</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>美心正在介紹最新主食罐！</div>
+                <div style={{ position: 'absolute', bottom: 8, left: 8, background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: 4, fontSize: 10, color: '#fff' }}>👁️ 1,204 人觀看</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 24, marginBottom: 8 }}>💤</div>
+                <div style={{ fontSize: 12 }}>目前無直播</div>
+              </>
+            )}
+          </div>
+          {/* Action */}
+          <div style={{ padding: 8, background: '#1E293B', textAlign: 'center' }}>
+            <button style={{ background: 'transparent', border: 'none', color: '#A78BFA', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>點擊進入完整直播間 →</button>
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import { orders, trendData } from '@/lib/mock-data';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import SystemArchButton from '@/components/SystemArchButton';
 
 export default function SellerDashboard() {
   const myOrders = orders.filter(o => o.catteryId === 'meow_house');
@@ -14,9 +15,18 @@ export default function SellerDashboard() {
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', margin: '0 0 4px' }}>📊 我的分潤總覽</h1>
-        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0 }}>即時追蹤推廣導流成效、分潤累積與階梯獎勵達成度</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', margin: '0 0 4px' }}>📊 我的分潤總覽</h1>
+          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0 }}>即時追蹤推廣導流成效、分潤累積與階梯獎勵達成度</p>
+        </div>
+        <div>
+          <a href="/shop/meixin" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            <button className="btn-primary" style={{ padding: '8px 16px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>👁️</span> 預覽我的前台賣場 (美心專屬)
+            </button>
+          </a>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -109,7 +119,23 @@ export default function SellerDashboard() {
 
       {/* Promotion Tools */}
       <div className="kpi-card" style={{ marginTop: 20 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, color: 'var(--color-text)' }}>🔗 賣家專屬推廣工具包</h3>
+        <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          🔗 賣家專屬推廣工具包
+        </h3>
+        
+        {/* PETLIVE Integration Banner */}
+        <div style={{ background: 'linear-gradient(135deg, #6366F1, #8B5CF6)', borderRadius: 'var(--radius-md)', padding: 24, color: 'white', marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)' }}>
+          <div>
+            <div style={{ display: 'inline-block', background: '#EF4444', color: 'white', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 800, marginBottom: 8, letterSpacing: 1 }}>LIVE</div>
+            <h4 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 6px 0', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>PETLIVE 直播帶貨系統已連動</h4>
+            <p style={{ fontSize: 13, margin: 0, opacity: 0.9 }}>一鍵開啟專屬直播間，邊播邊賣，商品自動帶入購物車，快速變現您的社群流量！</p>
+          </div>
+          <a href="http://localhost:3001/streamer/dashboard" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            <button style={{ background: 'white', color: '#6366F1', border: 'none', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 18 }}>🎥</span> 立即開啟直播
+            </button>
+          </a>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           <div style={{ border: '1px solid var(--color-border-light)', borderRadius: 'var(--radius-md)', padding: 20, textAlign: 'center', background: 'var(--color-bg)' }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>📲</div>
@@ -131,6 +157,7 @@ export default function SellerDashboard() {
           </div>
         </div>
       </div>
+      <SystemArchButton />
     </div>
   );
 }
