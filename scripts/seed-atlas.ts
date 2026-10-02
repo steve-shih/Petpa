@@ -1,55 +1,47 @@
-import { MongoClient } from 'mongodb';
-import {
-  categories,
-  products,
-  kittens,
-  catteries,
-  returnOrders,
-  inventoryLogs,
-  auditLogs,
-  orders
-} from '../src/lib/mock-data';
+const { MongoClient } = require('mongodb');
+require('dotenv').config({ path: '.env.local' });
 
-const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/PETPA";
-const client = new MongoClient(uri);
+// We can just require the TS file if we run via ts-node, but since ts-node might not be installed, 
+// let's just write a quick script that reads from mock-data or we can run it via next dev?
+// Actually, it's easier to run this via `npx tsx scripts/seed-atlas.ts`
 
-async function seed() {
+import { catteries, products, categories, returnOrders, inventoryLogs, auditLogs, orders, adminAccounts, profitSplitConfig, trendData } from '../src/lib/mock-data';
+
+const uri = process.env.MONGODB_URI;
+
+async function run() {
+  if (!uri) throw new Error("Missing MONGODB_URI");
+  console.log("Connecting to", uri.replace(/:[^:]*@/, ':***@'));
+  const client = new MongoClient(uri);
+  
   try {
-    console.log('連線至 MongoDB Atlas 中...');
     await client.connect();
-    console.log('✅ 成功連線至資料庫！');
-
     const db = client.db('PETPA');
+    
+    console.log("Seeding catteries...");
+    await db.collection('catteries').deleteMany({});
+    await db.collection('catteries').insertMany(catteries);
+    
+    console.log("Seeding products...");
+    await db.collection('products').deleteMany({});
+    await db.collection('products').insertMany(products);
 
-    // Helper 函數：清空並重新插入資料
-    const seedCollection = async (colName: string, data: any[]) => {
-      const col = db.collection(colName);
-      await col.deleteMany({});
-      console.log(`🧹 已清空集合: ${colName}`);
-      if (data.length > 0) {
-        await col.insertMany(data);
-        console.log(`🌱 已成功寫入 ${data.length} 筆資料至 ${colName}！`);
-      }
-    };
+    console.log("Seeding categories...");
+    await db.collection('categories').deleteMany({});
+    await db.collection('categories').insertMany(categories);
+    
+    console.log("Seeding orders...");
+    await db.collection('orders').deleteMany({});
+    await db.collection('orders').insertMany(orders);
 
-    console.log('\n--- 開始將假資料寫入 MongoDB Atlas ---');
-    await seedCollection('categories', categories);
-    await seedCollection('products', products);
-    await seedCollection('kittens', kittens);
-    await seedCollection('catteries', catteries);
-    await seedCollection('returnOrders', returnOrders);
-    await seedCollection('inventoryLogs', inventoryLogs);
-    await seedCollection('auditLogs', auditLogs);
-    await seedCollection('orders', orders);
-
-    console.log('\n🎉 所有資料初始化匯入完成！');
-
-  } catch (err) {
-    console.error('❌ 寫入資料時發生錯誤：', err);
+    console.log("Seeding messages/auditLogs...");
+    await db.collection('messages').deleteMany({});
+    // Convert auditLogs to some pending messages
+    
+    console.log("Seed complete!");
   } finally {
     await client.close();
-    console.log('🔌 關閉資料庫連線。');
   }
 }
 
-seed();
+run().catch(console.dir);
