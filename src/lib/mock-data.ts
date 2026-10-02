@@ -84,10 +84,7 @@ export interface Cattery {
   bannerPreset?: string;
   themeColor?: string;
   petliveRoomId?: string;
-  enableVideoAd?: boolean;
-  videoUrl?: string;
-  headerVideoTitle?: string;
-  activeWidgets?: string[];
+
   description: string;
   isApproved: boolean;
   // 帳號與密碼
