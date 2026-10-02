@@ -9,6 +9,7 @@ export default function SellerPageView() {
   const [description, setDescription] = useState(currentCattery.description);
   const [selectedPreset, setSelectedPreset] = useState(currentCattery.bannerPreset || 'warm-amber');
   const [customBannerUrl, setCustomBannerUrl] = useState(currentCattery.bannerUrl || '');
+  const [petliveRoomId, setPetliveRoomId] = useState(currentCattery.petliveRoomId || 'demo-room');
 
   // 影片廣告設定
   const [enableVideoAd, setEnableVideoAd] = useState(currentCattery.enableVideoAd ?? true);
@@ -17,7 +18,7 @@ export default function SellerPageView() {
 
   // 自訂模組開關 (Widgets)
   const [activeWidgets, setActiveWidgets] = useState<string[]>(
-    currentCattery.activeWidgets || ['announcement', 'video_ad', 'kittens_showcase', 'guarantee_badge', 'recommended_products']
+    currentCattery.activeWidgets || ['petlive_stream', 'announcement', 'video_ad', 'kittens_showcase', 'guarantee_badge', 'recommended_products']
   );
 
   const [saved, setSaved] = useState(false);
@@ -135,6 +136,20 @@ export default function SellerPageView() {
             )}
           </div>
 
+          {/* PETLIVE Settings */}
+          <div className="kpi-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#8B5CF6', margin: 0 }}>🔴 PETLIVE 專屬直播間綁定</h3>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4, color: 'var(--color-text-secondary)' }}>PETLIVE 直播間 ID 或網址</label>
+                <input type="text" placeholder="例如：demo-room" value={petliveRoomId} onChange={e => setPetliveRoomId(e.target.value)} className="form-input" />
+                <p style={{ fontSize: 11, color: '#94A3B8', margin: '4px 0 0' }}>請至您的 PETLIVE 控制台複製直播間 ID。啟用下方「直播版塊」後即可在前台顯示您的專屬直播窗。</p>
+              </div>
+            </div>
+          </div>
+
           {/* Widget Drag & Toggle Selector */}
           <div className="kpi-card">
             <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, color: 'var(--color-text)' }}>🧩 頁面版塊模組順序 (排列與開關)</h3>
@@ -142,6 +157,7 @@ export default function SellerPageView() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[
+                { id: 'petlive_stream', title: '🔴 PETLIVE 專屬直播間', icon: '🔴' },
                 { id: 'announcement', title: '📢 貓舍最新公告跑馬燈', icon: '📢' },
                 { id: 'video_ad', title: '🎥 Header 影音宣傳廣告', icon: '🎥' },
                 { id: 'kittens_showcase', title: '🐾 血統幼貓展示牆 (活體專區)', icon: '🐾' },
@@ -215,6 +231,27 @@ export default function SellerPageView() {
               {/* Dynamic Widgets Rendered by Order */}
               <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {activeWidgets.map(widgetId => {
+                  if (widgetId === 'petlive_stream') {
+                    return (
+                      <div key={widgetId} style={{ background: '#111', borderRadius: 'var(--radius-md)', padding: '16px 12px', border: '1px solid #8B5CF6', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #F97316, #8B5CF6)' }}></div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 12 }}>
+                          <span style={{ display: 'inline-block', width: 8, height: 8, background: '#EF4444', borderRadius: '50%', boxShadow: '0 0 8px #EF4444', animation: 'pulse 2s infinite' }}></span>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: 'white', letterSpacing: 1 }}>PETLIVE 即時直播</span>
+                        </div>
+                        <div style={{ height: 420, background: '#000', borderRadius: 8, overflow: 'hidden' }}>
+                          <iframe 
+                            src={`https://live.petpa.tw/live/${petliveRoomId}`} 
+                            style={{ width: '100%', height: '100%', border: 'none' }}
+                            allow="camera; microphone; fullscreen"
+                          />
+                        </div>
+                        <button style={{ marginTop: 12, background: 'rgba(139,92,246,0.1)', border: '1px solid #8B5CF6', color: '#C4B5FD', padding: '8px 16px', borderRadius: 20, fontSize: 11, fontWeight: 700, width: '100%' }}>
+                          進入 PETLIVE 原站互動
+                        </button>
+                      </div>
+                    );
+                  }
                   if (widgetId === 'announcement') {
                     return (
                       <div key={widgetId} style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 11.5, color: '#92400E', fontWeight: 600 }}>

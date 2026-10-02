@@ -10,12 +10,17 @@ export default function DedicatedShopPage({ params }: { params: Promise<{ slug: 
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [cart, setCart] = useState<Record<string, number>>({});
   const [selectedKitten, setSelectedKitten] = useState<Kitten | null>(null);
-  const [showLiveStream, setShowLiveStream] = useState<boolean>(true);
-
+  
   // 根據 URL 比對 slug 或 fallback
   const cattery = useMemo(() => {
     return catteries.find(c => c.slug === slug || c.catteryId === slug) || catteries[0];
   }, [slug]);
+
+  // 如果店家有設定 petliveRoomId 且有開啟 activeWidgets 的 'petlive_stream'，預設顯示
+  const [showLiveStream, setShowLiveStream] = useState<boolean>(
+    Boolean(cattery.petliveRoomId && cattery.activeWidgets?.includes('petlive_stream'))
+  );
+
 
   const activePreset = useMemo(() => {
     return bannerPresets.find(p => p.id === cattery.bannerPreset) || bannerPresets[0];
@@ -300,19 +305,19 @@ export default function DedicatedShopPage({ params }: { params: Promise<{ slug: 
             </div>
             <button onClick={() => setShowLiveStream(false)} style={{ background: 'rgba(0,0,0,0.3)', border: 'none', color: 'white', width: 22, height: 22, borderRadius: '50%', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
           </div>
-          {/* Player Box (Black box if offline, or pseudo live) */}
-          <div style={{ width: '100%', height: 158, background: '#111', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
-            {cattery.catteryId === 'meixin_bakery' ? (
-              <>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>🎥</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>美心正在介紹最新主食罐！</div>
-                <div style={{ position: 'absolute', bottom: 8, left: 8, background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: 4, fontSize: 10, color: '#fff' }}>👁️ 1,204 人觀看</div>
-              </>
+          {/* Player Box (Actual iframe to petlive viewer) */}
+          <div style={{ width: '100%', height: 420, background: '#000', position: 'relative' }}>
+            {cattery.petliveRoomId ? (
+              <iframe 
+                src={`https://live.petpa.tw/live/${cattery.petliveRoomId}`}
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                allow="camera; microphone; fullscreen"
+              />
             ) : (
-              <>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#666' }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>💤</div>
                 <div style={{ fontSize: 12 }}>目前無直播</div>
-              </>
+              </div>
             )}
           </div>
           {/* Action */}
