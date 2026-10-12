@@ -1,20 +1,37 @@
 import { NextResponse } from 'next/server';
-import { catteries, products, returnOrders, inventoryLogs, auditLogs } from '@/lib/mock-data';
+import { catteries as mockCatteries, auditLogs as mockAuditLogs } from '@/lib/mock-data';
+import { connectToDatabase } from '@/lib/mongodb';
 
-// GET /api/v1/admin/sellers - 管理員獲取全站賣家與 KOL 清單 RESTful API
+// GET /api/v1/admin/sellers - 管理員獲取全站賣家與 KOL 清單 RESTful API (優先讀取 MongoDB Atlas)
 export async function GET() {
-  return NextResponse.json({
-    success: true,
-    code: 200,
-    timestamp: new Date().toISOString(),
-    data: {
-      totalSellers: catteries.length,
-      catteries,
-    },
-  });
+  try {
+    const { db } = await connectToDatabase();
+    const sellers = await db.collection('catteries').find({}).toArray();
+    return NextResponse.json({
+      success: true,
+      code: 200,
+      source: 'mongodb_atlas',
+      timestamp: new Date().toISOString(),
+      data: {
+        totalSellers: sellers.length,
+        catteries: sellers,
+      },
+    });
+  } catch (err) {
+    return NextResponse.json({
+      success: true,
+      code: 200,
+      source: 'fallback_memory',
+      timestamp: new Date().toISOString(),
+      data: {
+        totalSellers: mockCatteries.length,
+        catteries: mockCatteries,
+      },
+    });
+  }
 }
 
-// POST /api/v1/admin/sellers - 管理員開通新賣家 (前後端分離 API)
+// POST /api/v1/admin/sellers - 管理員開通新賣家 (同步寫入 MongoDB Atlas)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -39,10 +56,10 @@ export async function POST(request: Request) {
       contactPhone: '0912-345-678',
       address: '門市/工作室',
       isApproved: true,
+      isSuspended: false,
     };
 
-    // 寫入審計日誌
-    auditLogs.unshift({
+    const auditEntry = {
       _id: `log_${Date.now()}`,
       timestamp: new Date().toISOString(),
       role: 'super_admin',
@@ -53,7 +70,17 @@ export async function POST(request: Request) {
       apiEndpoint: 'POST /api/v1/admin/sellers',
       actionType: 'CREATE',
       actionDetails: `經由 REST API 開通賣家【${created.name}】專屬 URL /shop/${created.slug}`,
-    });
+    };
+
+    try {
+      const { db } = await connectToDatabase();
+      await db.collection('catteries').insertOne(created as any);
+      await db.collection('auditLogs').insertOne(auditEntry as any);
+    } catch (dbErr) {
+      console.warn('寫入 MongoDB Atlas 失敗，寫入本地記憶體備援:', dbErr);
+      mockCatteries.unshift(created as any);
+      mockAuditLogs.unshift(auditEntry as any);
+    }
 
     return NextResponse.json({
       success: true,

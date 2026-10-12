@@ -195,7 +195,7 @@ export default function FlashyLandingPage() {
                 除了用品，買家還能點選「幼貓展示牆」，查看幼貓血統證明與合約 PDF。決定後進入結帳頁面，填寫寄送資料，支援 ATM 轉帳與多種金流，訂單成立後即刻由總倉安排出貨！
               </div>
             </div>
-            <button onClick={() => { setShowBuyerFlow(false); router.push('/shop/meow-house'); }} style={{ marginTop: 30, background: '#10B981', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 8, fontWeight: 700, width: '100%', cursor: 'pointer' }}>
+            <button onClick={() => { setShowBuyerFlow(false); router.push('/meow-house'); }} style={{ marginTop: 30, background: '#10B981', color: 'white', border: 'none', padding: '12px 24px', borderRadius: 8, fontWeight: 700, width: '100%', cursor: 'pointer' }}>
               進入示範賣場體驗購物
             </button>
           </div>

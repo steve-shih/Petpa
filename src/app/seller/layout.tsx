@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 const menuItems = [
   { key: '/seller/dashboard', label: '📊 分潤總覽' },
   { key: '/seller/orders', label: '📋 導流訂單' },
+  { key: '/seller/returns', label: '🔄 退貨雙重審核' },
   { key: '/seller/withdraw', label: '💳 提現申請' },
   { key: '/seller/page', label: '🖥️ 封面與頁面' },
   { key: '/seller/kittens', label: '🐱 活體貓咪管理' },

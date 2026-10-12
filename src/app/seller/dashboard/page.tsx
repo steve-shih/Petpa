@@ -1,10 +1,12 @@
 'use client';
 
-import { orders, trendData } from '@/lib/mock-data';
+import Link from 'next/link';
+import { orders, trendData, catteries } from '@/lib/mock-data';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import SystemArchButton from '@/components/SystemArchButton';
 
 export default function SellerDashboard() {
+  const currentCattery = catteries.find(c => c.catteryId === 'meow_house') || catteries[0];
   const myOrders = orders.filter(o => o.catteryId === 'meow_house');
   const totalProfit = myOrders.reduce((s, o) => s + o.sellerProfit, 0);
   const completedProfit = myOrders.filter(o => o.status === 'Completed').reduce((s, o) => s + o.sellerProfit, 0);
@@ -15,17 +17,29 @@ export default function SellerDashboard() {
 
   return (
     <div>
+      {/* 停權警示橫幅 */}
+      {currentCattery.isSuspended && (
+        <div style={{ background: '#FEE2E2', border: '1px solid #FECDD3', borderRadius: 'var(--radius-lg)', padding: '14px 18px', marginBottom: 20, color: '#991B1B', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 14 }}>⛔ 警示：您的店家賣場目前處於「停權處分」狀態</div>
+            <div style={{ fontSize: 12.5, marginTop: 4 }}>原因：{currentCattery.suspendedReason || '配合平台規範審查，暫停前台營業'}。在此期間前台暫停接單與下單功能。</div>
+          </div>
+          <span style={{ fontSize: 12, background: '#DC2626', color: 'white', padding: '4px 12px', borderRadius: 20, fontWeight: 700, whiteSpace: 'nowrap' }}>停權審查中</span>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', margin: '0 0 4px' }}>📊 我的分潤總覽</h1>
           <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0 }}>即時追蹤推廣導流成效、分潤累積與階梯獎勵達成度</p>
         </div>
         <div>
-          <a href="/shop/meixin" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+          {/* 修正：使用 Next.js Link 連結至 /meow-house 避免產生 /shop/shop */}
+          <Link href={`/${currentCattery.slug || 'meow-house'}`} target="_blank" style={{ textDecoration: 'none' }}>
             <button className="btn-primary" style={{ padding: '8px 16px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>👁️</span> 預覽我的前台賣場 (美心專屬)
+              <span>👁️</span> 預覽我的前台賣場
             </button>
-          </a>
+          </Link>
         </div>
       </div>
 

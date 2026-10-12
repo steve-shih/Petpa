@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { catteries, orders, trendData } from '@/lib/mock-data';
 
 export default function AdminReportsPage() {
@@ -87,8 +88,10 @@ export default function AdminReportsPage() {
                   <td style={{ padding: '12px', fontWeight: 700 }}>
                     🐱 {c.name}
                   </td>
-                  <td style={{ padding: '12px', color: 'var(--color-brand-600)', fontFamily: 'monospace' }}>
-                    /shop/{c.slug || c.catteryId}
+                  <td style={{ padding: '12px', fontFamily: 'monospace' }}>
+                    <Link href={`/${c.slug || c.catteryId}`} target="_blank" style={{ color: 'var(--color-brand-600)', fontWeight: 600, textDecoration: 'none' }}>
+                      /shop/{c.slug || c.catteryId}
+                    </Link>
                   </td>
                   <td style={{ padding: '12px' }}>
                     <code style={{ fontSize: 12 }}>{email}</code>

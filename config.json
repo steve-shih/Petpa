@@ -1,0 +1,84 @@
+{
+  "platform": {
+    "name": "Petpa 寵物補給站",
+    "domain": "https://area.petpa.tw",
+    "basePath": "/shop",
+    "supportEmail": "support@petpa.tw",
+    "supportPhone": "02-8888-9999"
+  },
+  "auth": {
+    "roles": ["super_admin", "admin", "seller", "buyer", "guest"],
+    "adminDomains": ["admin@petpa.tw", "root@petpa.tw"],
+    "sessionExpiryHours": 72
+  },
+  "logistics": {
+    "providers": [
+      { "id": "black_cat", "name": "黑貓宅急便", "prefix": "BC-" },
+      { "id": "hsinchu", "name": "新竹物流", "prefix": "HC-" },
+      { "id": "pelican", "name": "台灣宅配通", "prefix": "TC-" }
+    ],
+    "statuses": [
+      { "key": "PendingShipment", "label": "待出貨" },
+      { "key": "InTransit", "label": "運送中 (路上)" },
+      { "key": "Delivered", "label": "已送達 (到貨)" },
+      { "key": "Completed", "label": "已完成" }
+    ]
+  },
+  "returns": {
+    "policy": "DualApprovalRequired",
+    "description": "消費者退貨申請同時通知賣家與平台管理員，必須平台與賣家雙方均審核同意後，方可啟動退款與逆向物流入庫",
+    "reasons": [
+      "規格不符",
+      "包裝破損",
+      "商品瑕疵",
+      "買家改意退貨",
+      "幼貓健康疑慮"
+    ]
+  },
+  "adminBankAccount": {
+    "bankName": "國泰世華商業銀行 (013)",
+    "branchName": "台北總行營業部",
+    "accountNumber": "013-888-99998888",
+    "accountName": "派特怕寵物科技股份有限公司"
+  },
+  "payment": {
+    "enabledMethods": [
+      { "id": "atm_transfer", "name": "ATM 銀行匯款 (管理員指定對帳戶頭)", "active": true }
+    ],
+    "disabledMethods": [
+      { "id": "credit_card", "name": "信用卡 (Visa / Master / JCB)", "active": false, "reason": "暫時灰色未開放 (尚未開發)" },
+      { "id": "ecpay", "name": "綠界金流 (ECPay)", "active": false, "reason": "暫時灰色未開放 (尚未開發)" },
+      { "id": "line_pay", "name": "LINE Pay", "active": false, "reason": "暫時灰色未開放 (尚未開發)" }
+    ]
+  },
+  "kittenCardStyles": [
+    { "id": "polaroid", "name": "拍立得日常實拍風", "badge": "📷 拍立得日常實拍" },
+    { "id": "pedigree", "name": "賽級尊榮黑金卡", "badge": "👑 CFA 賽級名門血統" },
+    { "id": "reel", "name": "影片膠捲動態風", "badge": "🎞️ REEL 35MM 實拍動態" },
+    { "id": "macaron", "name": "甜心粉彩馬卡龍", "badge": "🧁 甜心馬卡龍萌寵" }
+  ],
+  "environments": {
+    "current": "staging",
+    "staging": {
+      "description": "測試與展示環境，開放測試便捷工具、模擬金流與一鍵切換角色",
+      "oneClickRoleSwitch": true,
+      "mockLogisticsWebhook": true,
+      "mockBankTransferVerification": true,
+      "allowUnregisteredCheckout": true,
+      "showTestHelperFloatingButtons": true,
+      "requireRealKycForSellers": false,
+      "requireDualEsignForPets": false
+    },
+    "production": {
+      "description": "正式營運站，嚴格關閉所有測試捷徑，啟用真實金流、電子發票、物流API、KYC與合約簽署",
+      "oneClickRoleSwitch": false,
+      "mockLogisticsWebhook": false,
+      "mockBankTransferVerification": false,
+      "allowUnregisteredCheckout": false,
+      "showTestHelperFloatingButtons": false,
+      "requireRealKycForSellers": true,
+      "requireDualEsignForPets": true,
+      "requireVirtualAtmWebhooks": true
+    }
+  }
+}

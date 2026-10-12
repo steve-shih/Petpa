@@ -7,7 +7,7 @@ export default function AdminMessagesPage() {
   // Aggregate notifications
   const [productProposals, setProductProposals] = useState(products.filter(p => p.reviewStatus === 'PendingReview'));
   const [categoryProposals, setCategoryProposals] = useState(categories.filter(c => c.reviewStatus === 'PendingReview'));
-  const [pendingReturns, setPendingReturns] = useState(returnOrders.filter(r => r.status === 'PendingReview'));
+  const [pendingReturns, setPendingReturns] = useState(returnOrders.filter(r => r.status === 'PendingDualReview' || (r.status as any) === 'PendingReview'));
   const [pendingSellers, setPendingSellers] = useState(catteries.filter(c => !c.isApproved));
 
   // Extract special price requests

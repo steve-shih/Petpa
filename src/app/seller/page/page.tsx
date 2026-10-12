@@ -9,6 +9,9 @@ export default function SellerPageView() {
   const [description, setDescription] = useState(currentCattery.description);
   const [selectedPreset, setSelectedPreset] = useState(currentCattery.bannerPreset || 'warm-amber');
   const [customBannerUrl, setCustomBannerUrl] = useState(currentCattery.bannerUrl || '');
+  const [kittenCardStyle, setKittenCardStyle] = useState<'polaroid' | 'pedigree' | 'reel' | 'macaron'>(
+    (currentCattery.kittenCardStyle as any) || 'polaroid'
+  );
   const [petliveRoomId, setPetliveRoomId] = useState(currentCattery.petliveRoomId || 'demo-room');
 
   // 影片廣告設定
@@ -41,8 +44,29 @@ export default function SellerPageView() {
     setActiveWidgets(newWidgets);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaved(true);
+    // 同步儲存至 MongoDB Atlas
+    try {
+      await fetch(`/api/v1/catteries/${currentCattery.slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          description,
+          bannerPreset: selectedPreset,
+          bannerUrl: customBannerUrl,
+          kittenCardStyle,
+          petliveRoomId,
+          enableVideoAd,
+          videoUrl,
+          headerVideoTitle,
+          activeWidgets,
+        }),
+      });
+    } catch (err) {
+      console.warn('API save error:', err);
+    }
     setTimeout(() => setSaved(false), 3000);
   };
 
@@ -109,6 +133,43 @@ export default function SellerPageView() {
                 placeholder="/cattery_banner_demo.png"
                 className="form-input"
               />
+            </div>
+          </div>
+
+          {/* Kitten Card Style Customizer */}
+          <div className="kpi-card">
+            <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: 'var(--color-text)' }}>🐾 特寵活體幼貓專區展示風格</h3>
+            <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', margin: '0 0 12px' }}>
+              為您的特定寵物貓咪挑選最具特色之展示卡片，前台買家點開皆可放大互動照片牆與短片
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+              {[
+                { id: 'polaroid', name: '📷 拍立得日常實拍風', desc: '文青紙膠帶、日常萌態寫真、生活感' },
+                { id: 'pedigree', name: '👑 賽級尊榮黑金卡', desc: 'CFA 名門認證、黑金尊爵血統、王室風' },
+                { id: 'reel', name: '🎞️ 影片膠捲動態風', desc: '電影 35mm 膠捲、播放短片、動態感' },
+                { id: 'macaron', name: '🧁 甜心粉彩馬卡龍', desc: '夢幻柔粉漸層、可愛愛心、少女萌寵' },
+              ].map(st => (
+                <div
+                  key={st.id}
+                  onClick={() => setKittenCardStyle(st.id as any)}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: 'var(--radius-md)',
+                    border: kittenCardStyle === st.id ? '2px solid var(--color-brand-500)' : '1px solid var(--color-border)',
+                    background: kittenCardStyle === st.id ? '#FFF7ED' : 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 800, color: kittenCardStyle === st.id ? 'var(--color-brand-600)' : 'var(--color-text)', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{st.name}</span>
+                    {kittenCardStyle === st.id && <span>✓</span>}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+                    {st.desc}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

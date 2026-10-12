@@ -66,7 +66,12 @@ export interface Kitten {
   price: number;
   status: 'Available' | 'Reserved' | 'Sold'; // 待預定 | 已預定 | 已售出
   description: string;
-  images: string[];
+  images: string[]; // 📸 多張萌貓照片相簿牆
+  videoUrl?: string; // 🎬 幼貓動態短片 URL
+  traits?: string[]; // ✨ 個性特徵 (例如：呼嚕怪、親人黏人、天使小貓)
+  awards?: string[]; // 🏆 血統證照 / 賽事獲獎紀錄
+  badgeText?: string; // 萌系特色標籤 (例如：CFA二代賽級、頂級大包子臉)
+  themeStyle?: 'polaroid' | 'pedigree' | 'reel' | 'macaron'; // 拍立得風 | 賽級金卡 | 影片膠捲 | 馬卡龍粉彩
   pdfUrl?: string; // 📄 可選的活體定型化契約 / 晶片移轉 PDF 檔案
   pdfTitle?: string; // 📄 PDF 文件顯示名稱 (例如：寵物買賣定型化契約.pdf)
 }
@@ -86,7 +91,10 @@ export interface Cattery {
   petliveRoomId?: string;
 
   description: string;
-  isApproved: boolean;
+  isApproved: boolean; // 是否通過初次審核入駐
+  isSuspended?: boolean; // ⛔ 停權處分 (獨立選項：前台賣場停止營業與接單)
+  suspendedReason?: string; // 停權具體原因 (例如：特寵證號逾期、契約違規)
+  suspendedAt?: string; // 停權生效時間
   // 帳號與密碼
   loginEmail?: string;
   initialPassword?: string;
@@ -100,6 +108,7 @@ export interface Cattery {
   enableVideoAd?: boolean;
   headerVideoTitle?: string;
   activeWidgets?: string[];
+  kittenCardStyle?: 'polaroid' | 'pedigree' | 'reel' | 'macaron'; // 幼貓展示專區風格樣式
 }
 
 // ==================== 進銷存 (ERP) 異動紀錄 ====================
@@ -118,7 +127,7 @@ export interface InventoryLog {
   createdAt: string;
 }
 
-// ==================== 退貨 / 售後單 ====================
+// ==================== 退貨 / 售後單 (雙重審核制) ====================
 export interface ReturnOrder {
   _id: string;
   returnNumber: string;
@@ -126,11 +135,22 @@ export interface ReturnOrder {
   catteryId: string;
   catteryName: string;
   customerName: string;
+  customerPhone?: string;
   productTitle: string;
   qty: number;
   refundAmount: number;
   reason: '規格不符' | '包裝破損' | '商品瑕疵' | '買家改意退貨';
-  status: 'PendingReview' | 'Approved' | 'Refunded' | 'Rejected'; // 待審核 | 已同意退貨 | 已完成退款 | 已拒絕
+  
+  // 雙重審核核心：賣家與平台管理員雙方均需審核同意
+  sellerApprovalStatus: 'Pending' | 'Approved' | 'Rejected' | 'PendingReview'; // 🐱 賣家審核：待審核 | 已同意 | 駁回
+  sellerApprovedAt?: string;
+  sellerRejectReason?: string;
+
+  adminApprovalStatus: 'Pending' | 'Approved' | 'Rejected' | 'PendingReview'; // 👨‍💼 平台管理員審核：待審核 | 已同意 | 駁回
+  adminApprovedAt?: string;
+  adminRejectReason?: string;
+
+  status: 'PendingDualReview' | 'PendingReview' | 'Approved' | 'Refunded' | 'Rejected'; // 雙方審核中 | 雙方均同意(核准退貨) | 已完成退款 | 已駁回
   restockInventory: boolean; // 是否完成自動補回進銷存庫存
   createdAt: string;
 }
@@ -149,15 +169,28 @@ export interface AuditLog {
   actionDetails: string;
 }
 
+// ==================== 訂單模型 (含管理員物流控制) ====================
 export interface Order {
   _id: string;
   orderNumber: string;
   catteryId: string;
   catteryName: string;
   customerName: string;
+  customerPhone?: string;
+  shippingAddress?: string;
   totalAmount: number;
   sellerProfit: number;
-  status: string;
+  platformProfit?: number;
+  costPrice?: number;
+  status: string; // 'Pending' | 'Paid' | 'Processing' | 'InTransit' | 'Delivered' | 'Completed' | 'RefundRequested'
+  items?: Array<{ productId: string; title: string; qty: number; sellingPrice: number }>;
+  
+  // 管理員物流狀態控制：出貨、到貨、路上
+  logisticsStatus: 'PendingShipment' | 'InTransit' | 'Delivered' | 'Completed'; // 待出貨 | 運送中 (路上) | 已送達 (到貨) | 已完成
+  logisticsProvider?: string; // 黑貓宅急便 / 新竹物流 / 宅配通
+  trackingNumber?: string; // 物流包裹追蹤號
+  shippedAt?: string; // 管理員出貨發車時間
+  deliveredAt?: string; // 到貨時間
   createdAt: string;
 }
 
@@ -411,34 +444,47 @@ export const products: Product[] = [
   ...cannedProducts,
 ];
 
-// ==================== 封面主體預設主題庫 ====================
+// ==================== 封面主體預設主題庫 (多元豐富樣式) ====================
 export const bannerPresets = [
-  { id: 'warm-amber', name: '暖陽琥珀 (預設)', gradient: 'linear-gradient(135deg, #FFF7ED 0%, #FFECD2 50%, #FFD6A5 100%)', badgeBg: '#FEF3C7', badgeColor: '#D97706', accentColor: '#F97316' },
-  { id: 'emerald-forest', name: '森林翡翠', gradient: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 50%, #A7F3D0 100%)', badgeBg: '#D1FAE5', badgeColor: '#047857', accentColor: '#10B981' },
-  { id: 'lavender-dream', name: '夢幻薰衣草', gradient: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 50%, #DDD6FE 100%)', badgeBg: '#EDE9FE', badgeColor: '#6D28D9', accentColor: '#8B5CF6' },
-  { id: 'ocean-breeze', name: '海洋湛藍', gradient: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 50%, #BAE6FD 100%)', badgeBg: '#E0F2FE', badgeColor: '#0369A1', accentColor: '#0284C7' },
-  { id: 'rose-gold', name: '玫瑰奶茶', gradient: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 50%, #FECDD3 100%)', badgeBg: '#FFE4E6', badgeColor: '#BE123C', accentColor: '#F43F5E' },
-  { id: 'midnight-dark', name: '尊爵奢華黑金', gradient: 'linear-gradient(135deg, #1E293B 0%, #0F172A 50%, #334155 100%)', badgeBg: '#334155', badgeColor: '#F59E0B', accentColor: '#F59E0B', isDark: true },
+  { id: 'warm-amber', name: '暖陽琥珀 (經典暖橘)', gradient: 'linear-gradient(135deg, #FFF7ED 0%, #FFECD2 50%, #FFD6A5 100%)', badgeBg: '#FEF3C7', badgeColor: '#D97706', accentColor: '#F97316' },
+  { id: 'emerald-forest', name: '森林翡翠 (清新森系)', gradient: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 50%, #A7F3D0 100%)', badgeBg: '#D1FAE5', badgeColor: '#047857', accentColor: '#10B981' },
+  { id: 'lavender-dream', name: '夢幻薰衣草 (柔美紫羅蘭)', gradient: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 50%, #DDD6FE 100%)', badgeBg: '#EDE9FE', badgeColor: '#6D28D9', accentColor: '#8B5CF6' },
+  { id: 'ocean-breeze', name: '海洋湛藍 (清爽水藍)', gradient: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 50%, #BAE6FD 100%)', badgeBg: '#E0F2FE', badgeColor: '#0369A1', accentColor: '#0284C7' },
+  { id: 'rose-gold', name: '玫瑰奶茶 (奢華名媛粉)', gradient: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 50%, #FECDD3 100%)', badgeBg: '#FFE4E6', badgeColor: '#BE123C', accentColor: '#F43F5E' },
+  { id: 'midnight-dark', name: '尊爵奢華黑金 (黑曜石)', gradient: 'linear-gradient(135deg, #1E293B 0%, #0F172A 50%, #334155 100%)', badgeBg: '#334155', badgeColor: '#F59E0B', accentColor: '#F59E0B', isDark: true },
+  { id: 'sakura-pop', name: '🌸 櫻花萌妹樂園 (粉彩可愛風)', gradient: 'linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 50%, #FBCFE8 100%)', badgeBg: '#FCE7F3', badgeColor: '#DB2777', accentColor: '#EC4899' },
+  { id: 'pixel-arcade', name: '🎮 像素復古電玩城 (日系童趣風)', gradient: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 50%, #BFDBFE 100%)', badgeBg: '#DBEAFE', badgeColor: '#2563EB', accentColor: '#3B82F6' },
+  { id: 'vintage-coffee', name: '☕ 復古咖啡館 (英倫木質調)', gradient: 'linear-gradient(135deg, #FEFCE8 0%, #FEF9C3 50%, #FDE047 100%)', badgeBg: '#FEF9C3', badgeColor: '#854D0E', accentColor: '#CA8A04' },
 ];
 
-// ==================== 幼貓活體假資料 ====================
+// ==================== 幼貓活體假資料 (照片牆、影片與樣式支援) ====================
 export const kittens: Kitten[] = [
   {
     _id: 'kit_001',
     catteryId: 'meow_house',
     name: '珍珠 (Mochi)',
-    breed: '英國短毛貓 (藍白)',
+    breed: '英國短毛貓 (藍白雙色)',
     gender: '母',
     birthday: '2026-06-12',
-    fatherName: '威廉男爵 (CFA 冠軍組)',
-    motherName: '露露 (歐系血統)',
-    vaccines: ['三合一第一劑', '三合一第二劑'],
+    fatherName: '威廉男爵 (CFA 冠軍組大獎)',
+    motherName: '露露 (歐系純血種母)',
+    vaccines: ['三合一第一劑', '三合一第二劑', '狂犬病疫苗'],
     dewormed: true,
     microchipNumber: '900138000123456',
     price: 38000,
     status: 'Available',
-    description: '性格溫和、大眼睛包子臉，特別親人，已學會使用豆腐砂與吃幼貓泡軟乾糧。',
-    images: ['/images/kitten-01.jpg'],
+    description: '性格極度親人，大眼睛、圓滾滾飽滿包子臉！抱起來就開大聲呼嚕，已學會使用豆腐砂與吃幼貓泡軟乾糧。',
+    images: [
+      'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800',
+      'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800',
+      'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=800',
+      'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=800',
+    ],
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    traits: ['🐾 天使呼嚕怪', '💖 極度親人愛討摸', '🍚 胃口極好不挑食', '🧸 抱抱娃娃般柔軟'],
+    awards: ['🏆 父親榮獲 CFA 2025 賽季藍白組分區冠軍', '📜 附 TICA 五代國際血統證明書', '🛡️ 通過 HCM 與 PKD 雙重基因篩檢陰性'],
+    badgeText: '✨ CFA 二代名門頂級包子臉',
+    themeStyle: 'polaroid',
     pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
     pdfTitle: '📜 珍珠 (Mochi) 寵物買賣定型化契約與健康保證書.pdf',
   },
@@ -446,35 +492,53 @@ export const kittens: Kitten[] = [
     _id: 'kit_002',
     catteryId: 'meow_house',
     name: '奧斯卡 (Oscar)',
-    breed: '英國短毛貓 (藍色)',
+    breed: '英國短毛貓 (正藍色)',
     gender: '公',
     birthday: '2026-06-12',
     fatherName: '威廉男爵 (CFA 冠軍組)',
     motherName: '露露 (歐系血統)',
-    vaccines: ['三合一第一劑'],
+    vaccines: ['三合一第一劑', '體內外全驅蟲'],
     dewormed: true,
     microchipNumber: '900138000123457',
     price: 42000,
     status: 'Reserved',
-    description: '圓滾滾的小胖子，骨架大毛量極厚，對玩具反應非常敏捷，已被台北陳先生預訂。',
-    images: ['/images/kitten-02.jpg'],
+    description: '圓滾滾的小胖子，骨架粗壯毛量極厚，對逗貓棒反應靈敏，已被台北陳先生預訂保留。',
+    images: [
+      'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800',
+      'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=800',
+      'https://images.unsplash.com/photo-1561948955-570b270e7c36?w=800',
+    ],
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    traits: ['🐾 粗骨架大圓臉', '⚡ 活潑好奇寶寶', '🎮 逗貓棒獵手'],
+    awards: ['🏆 血統傳承 CFA 三代登錄純藍種公'],
+    badgeText: '👑 正藍粗骨架公貓',
+    themeStyle: 'pedigree',
   },
   {
     _id: 'kit_003',
     catteryId: 'golden_paw',
     name: '棉花糖 (Cotton)',
-    breed: '布偶貓 (雙色海豹)',
+    breed: '布偶貓 (雙色海豹山貓紋)',
     gender: '母',
     birthday: '2026-05-20',
-    fatherName: 'Apollo (TICA 雙料冠軍)',
-    motherName: 'Angel (賽級藍雙)',
+    fatherName: 'Apollo (TICA 雙料年度冠軍)',
+    motherName: 'Angel (賽級藍雙色純系)',
     vaccines: ['三合一完整兩劑', '狂犬病疫苗'],
     dewormed: true,
     microchipNumber: '900138000123888',
     price: 68000,
     status: 'Available',
-    description: '海豹雙色正八字面具、藍寶石般的清澈大眼，極度抱抱貓，適合有小孩的家庭陪伴。',
-    images: ['/images/kitten-03.jpg'],
+    description: '海豹雙色正八字面具、如藍寶石般清澈的無辜大眼睛！極致抱抱小貓，個性溫馴安靜，非常適合陪伴小朋友。',
+    images: [
+      'https://images.unsplash.com/photo-1513360309081-38f076278f1c?w=800',
+      'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=800',
+      'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=800',
+    ],
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    traits: ['💎 藍寶石明眸', '🕊️ 仙氣飄飄長毛', '🛋️ 安靜貼心抱枕貓'],
+    awards: ['🏆 TICA 2024-2025 最佳海豹雙色血統線', '📜 原廠五代無近親繁育認證'],
+    badgeText: '💎 仙女級正八字藍眼布偶',
+    themeStyle: 'macaron',
   },
   {
     _id: 'kit_004',
@@ -490,8 +554,13 @@ export const kittens: Kitten[] = [
     microchipNumber: '900138000123999',
     price: 32000,
     status: 'Sold',
-    description: '已找到溫暖的新家。完成絕育與微晶片植入移轉。',
-    images: ['/images/kitten-04.jpg'],
+    description: '超萌摺耳小可愛，性格極為隨和安靜，已順利完成交車並找到新家。',
+    images: [
+      'https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=800',
+    ],
+    traits: ['🍞 奶油色圓臉', '🏠 已幸福成家'],
+    badgeText: '🏠 已找到新家',
+    themeStyle: 'reel',
   },
 ];
 
@@ -569,7 +638,10 @@ export const catteries: Cattery[] = [
     enableKittens: false,
     contactPhone: '0955-666-777',
     address: '高雄市左營區博愛二路 300 號',
-    isApproved: false,
+    isApproved: true,
+    isSuspended: true,
+    suspendedReason: '特定寵物業許可證逾期未依限補正，暫停前台營業與接單',
+    suspendedAt: '2026-10-01 10:30',
   },
   {
     _id: 'cat_005',
@@ -611,7 +683,7 @@ export const catteries: Cattery[] = [
   },
 ];
 
-// ==================== 退貨單假資料 ====================
+// ==================== 退貨單假資料 (雙重審核制) ====================
 export const returnOrders: ReturnOrder[] = [
   {
     _id: 'ret_001',
@@ -620,11 +692,15 @@ export const returnOrders: ReturnOrder[] = [
     catteryId: 'meow_house',
     catteryName: '喵喵萌寵專業貓舍',
     customerName: '林小姐',
+    customerPhone: '0912-888-777',
     productTitle: '皇家幼貓專用鮮採分裝糧 (500g)',
     qty: 1,
     refundAmount: 280,
     reason: '包裝破損',
-    status: 'PendingReview',
+    sellerApprovalStatus: 'Approved',
+    sellerApprovedAt: '2026-09-18 15:20',
+    adminApprovalStatus: 'Pending',
+    status: 'PendingDualReview', // 賣家已同意，等待平台管理員同意
     restockInventory: false,
     createdAt: '2026-09-18T14:30:00Z',
   },
@@ -635,13 +711,36 @@ export const returnOrders: ReturnOrder[] = [
     catteryId: 'golden_paw',
     catteryName: '金爪名貓坊',
     customerName: '王太太',
+    customerPhone: '0922-333-444',
     productTitle: 'Petpa 專用除臭豆腐貓砂 (6L)',
     qty: 2,
     refundAmount: 440,
     reason: '規格不符',
-    status: 'Approved',
+    sellerApprovalStatus: 'Approved',
+    sellerApprovedAt: '2026-09-19 10:00',
+    adminApprovalStatus: 'Approved',
+    adminApprovedAt: '2026-09-19 11:30',
+    status: 'Approved', // 雙方均同意，安排逆物流
     restockInventory: true,
     createdAt: '2026-09-19T09:15:00Z',
+  },
+  {
+    _id: 'ret_003',
+    returnNumber: 'RET-20260920-03',
+    orderNumber: 'PETPA-20260917-0005',
+    catteryId: 'meow_house',
+    catteryName: '喵喵萌寵專業貓舍',
+    customerName: '陳先生',
+    customerPhone: '0933-555-666',
+    productTitle: '渴望六種魚全貓糧 (1.8kg)',
+    qty: 1,
+    refundAmount: 1250,
+    reason: '買家改意退貨',
+    sellerApprovalStatus: 'Pending',
+    adminApprovalStatus: 'Pending',
+    status: 'PendingDualReview', // 雙方均待審核
+    restockInventory: false,
+    createdAt: '2026-09-20T08:10:00Z',
   },
 ];
 
@@ -717,18 +816,170 @@ export const auditLogs: AuditLog[] = [
   },
 ];
 
-// ==================== 訂單假資料 ====================
+// ==================== 訂單假資料 (含管理員物流狀態掌控) ====================
 export const orders: Order[] = [
-  { _id: 'ord_001', orderNumber: 'PETPA-20260915-0001', catteryId: 'meow_house', catteryName: '喵喵萌寵專業貓舍', customerName: '林小姐', totalAmount: 1260, sellerProfit: 98, status: 'Completed', createdAt: '2026-09-15T10:30:00Z' },
-  { _id: 'ord_002', orderNumber: 'PETPA-20260915-0002', catteryId: 'golden_paw', catteryName: '金爪名貓坊', customerName: '張先生', totalAmount: 890, sellerProfit: 68, status: 'Completed', createdAt: '2026-09-15T14:20:00Z' },
-  { _id: 'ord_003', orderNumber: 'PETPA-20260916-0003', catteryId: 'meow_house', catteryName: '喵喵萌寵專業貓舍', customerName: '王太太', totalAmount: 2150, sellerProfit: 165, status: 'Shipped', createdAt: '2026-09-16T09:15:00Z' },
-  { _id: 'ord_004', orderNumber: 'PETPA-20260916-0004', catteryId: 'whisker_land', catteryName: '鬍鬚樂園貓舍', customerName: '陳小姐', totalAmount: 580, sellerProfit: 45, status: 'Completed', createdAt: '2026-09-16T16:40:00Z' },
-  { _id: 'ord_005', orderNumber: 'PETPA-20260917-0005', catteryId: 'meow_house', catteryName: '喵喵萌寵專業貓舍', customerName: '李先生', totalAmount: 1680, sellerProfit: 130, status: 'Processing', createdAt: '2026-09-17T11:00:00Z' },
-  { _id: 'ord_006', orderNumber: 'PETPA-20260917-0006', catteryId: 'golden_paw', catteryName: '金爪名貓坊', customerName: '黃小姐', totalAmount: 750, sellerProfit: 58, status: 'Completed', createdAt: '2026-09-17T13:30:00Z' },
-  { _id: 'ord_007', orderNumber: 'PETPA-20260918-0007', catteryId: 'meow_house', catteryName: '喵喵萌寵專業貓舍', customerName: '吳太太', totalAmount: 3200, sellerProfit: 248, status: 'Paid', createdAt: '2026-09-18T08:45:00Z' },
-  { _id: 'ord_008', orderNumber: 'PETPA-20260918-0008', catteryId: 'whisker_land', catteryName: '鬍鬚樂園貓舍', customerName: '劉先生', totalAmount: 420, sellerProfit: 32, status: 'Completed', createdAt: '2026-09-18T15:20:00Z' },
-  { _id: 'ord_009', orderNumber: 'PETPA-20260919-0009', catteryId: 'golden_paw', catteryName: '金爪名貓坊', customerName: '趙小姐', totalAmount: 1100, sellerProfit: 85, status: 'Pending', createdAt: '2026-09-19T10:10:00Z' },
-  { _id: 'ord_010', orderNumber: 'PETPA-20260919-0010', catteryId: 'meow_house', catteryName: '喵喵萌寵專業貓舍', customerName: '周先生', totalAmount: 960, sellerProfit: 74, status: 'Paid', createdAt: '2026-09-19T12:00:00Z' },
+  {
+    _id: 'ord_001',
+    orderNumber: 'PETPA-20260915-0001',
+    catteryId: 'meow_house',
+    catteryName: '喵喵萌寵專業貓舍',
+    customerName: '林小姐',
+    customerPhone: '0912-888-777',
+    shippingAddress: '新北市板橋區縣民大道二段 66 號',
+    totalAmount: 1260,
+    sellerProfit: 98,
+    status: 'Completed',
+    logisticsStatus: 'Completed',
+    logisticsProvider: '黑貓宅急便',
+    trackingNumber: 'BC-99882211',
+    shippedAt: '2026-09-15 14:00',
+    deliveredAt: '2026-09-16 11:20',
+    createdAt: '2026-09-15T10:30:00Z',
+  },
+  {
+    _id: 'ord_002',
+    orderNumber: 'PETPA-20260915-0002',
+    catteryId: 'golden_paw',
+    catteryName: '金爪名貓坊',
+    customerName: '張先生',
+    customerPhone: '0922-333-222',
+    shippingAddress: '台北市大安區敦化南路二段 100 號',
+    totalAmount: 890,
+    sellerProfit: 68,
+    status: 'Delivered',
+    logisticsStatus: 'Delivered',
+    logisticsProvider: '黑貓宅急便',
+    trackingNumber: 'BC-99882212',
+    shippedAt: '2026-09-15 16:30',
+    deliveredAt: '2026-09-16 15:40',
+    createdAt: '2026-09-15T14:20:00Z',
+  },
+  {
+    _id: 'ord_003',
+    orderNumber: 'PETPA-20260916-0003',
+    catteryId: 'meow_house',
+    catteryName: '喵喵萌寵專業貓舍',
+    customerName: '王太太',
+    customerPhone: '0933-444-555',
+    shippingAddress: '台北市信義區忠孝東路五段 200 號',
+    totalAmount: 2150,
+    sellerProfit: 165,
+    status: 'InTransit',
+    logisticsStatus: 'InTransit', // 路上 (運送中)
+    logisticsProvider: '黑貓宅急便',
+    trackingNumber: 'BC-99882213',
+    shippedAt: '2026-09-16 10:15',
+    createdAt: '2026-09-16T09:15:00Z',
+  },
+  {
+    _id: 'ord_004',
+    orderNumber: 'PETPA-20260916-0004',
+    catteryId: 'whisker_land',
+    catteryName: '鬍鬚樂園貓舍',
+    customerName: '陳小姐',
+    customerPhone: '0955-666-888',
+    shippingAddress: '台中市西屯區河南路二段 80 號',
+    totalAmount: 580,
+    sellerProfit: 45,
+    status: 'Completed',
+    logisticsStatus: 'Completed',
+    logisticsProvider: '新竹物流',
+    trackingNumber: 'HC-88771122',
+    shippedAt: '2026-09-16 18:00',
+    deliveredAt: '2026-09-17 14:10',
+    createdAt: '2026-09-16T16:40:00Z',
+  },
+  {
+    _id: 'ord_005',
+    orderNumber: 'PETPA-20260917-0005',
+    catteryId: 'meow_house',
+    catteryName: '喵喵萌寵專業貓舍',
+    customerName: '李先生',
+    customerPhone: '0966-777-999',
+    shippingAddress: '新北市新店區北新路三段 12 號',
+    totalAmount: 1680,
+    sellerProfit: 130,
+    status: 'InTransit',
+    logisticsStatus: 'InTransit', // 路上 (運送中)
+    logisticsProvider: '台灣宅配通',
+    trackingNumber: 'TC-55443322',
+    shippedAt: '2026-09-17 14:00',
+    createdAt: '2026-09-17T11:00:00Z',
+  },
+  {
+    _id: 'ord_006',
+    orderNumber: 'PETPA-20260917-0006',
+    catteryId: 'golden_paw',
+    catteryName: '金爪名貓坊',
+    customerName: '黃小姐',
+    customerPhone: '0977-888-000',
+    shippingAddress: '桃園市中壢區中正路 30 號',
+    totalAmount: 750,
+    sellerProfit: 58,
+    status: 'Delivered',
+    logisticsStatus: 'Delivered',
+    logisticsProvider: '黑貓宅急便',
+    trackingNumber: 'BC-99882214',
+    shippedAt: '2026-09-17 16:00',
+    deliveredAt: '2026-09-18 10:30',
+    createdAt: '2026-09-17T13:30:00Z',
+  },
+  {
+    _id: 'ord_007',
+    orderNumber: 'PETPA-20260918-0007',
+    catteryId: 'meow_house',
+    catteryName: '喵喵萌寵專業貓舍',
+    customerName: '吳太太',
+    customerPhone: '0988-999-111',
+    shippingAddress: '新竹市東區光復路二段 50 號',
+    totalAmount: 3200,
+    sellerProfit: 248,
+    status: 'Paid',
+    logisticsStatus: 'PendingShipment', // 待出貨
+    createdAt: '2026-09-18T08:45:00Z',
+  },
+  {
+    _id: 'ord_008',
+    orderNumber: 'PETPA-20260918-0008',
+    catteryId: 'whisker_land',
+    catteryName: '鬍鬚樂園貓舍',
+    customerName: '劉先生',
+    customerPhone: '0911-222-333',
+    shippingAddress: '台南市東區中華東路三段 15 號',
+    totalAmount: 420,
+    sellerProfit: 32,
+    status: 'Paid',
+    logisticsStatus: 'PendingShipment', // 待出貨
+    createdAt: '2026-09-18T15:20:00Z',
+  },
+  {
+    _id: 'ord_009',
+    orderNumber: 'PETPA-20260919-0009',
+    catteryId: 'golden_paw',
+    catteryName: '金爪名貓坊',
+    customerName: '趙小姐',
+    customerPhone: '0922-333-555',
+    shippingAddress: '高雄市左營區博愛二路 88 號',
+    totalAmount: 1100,
+    sellerProfit: 85,
+    status: 'Pending',
+    logisticsStatus: 'PendingShipment',
+    createdAt: '2026-09-19T10:10:00Z',
+  },
+  {
+    _id: 'ord_010',
+    orderNumber: 'PETPA-20260919-0010',
+    catteryId: 'meow_house',
+    catteryName: '喵喵萌寵專業貓舍',
+    customerName: '周先生',
+    customerPhone: '0933-666-999',
+    shippingAddress: '新北市中和區景平路 120 號',
+    totalAmount: 960,
+    sellerProfit: 74,
+    status: 'Paid',
+    logisticsStatus: 'PendingShipment', // 待出貨
+    createdAt: '2026-09-19T12:00:00Z',
+  },
 ];
 
 // ==================== 管理員帳號 ====================

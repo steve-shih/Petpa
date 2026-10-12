@@ -1,0 +1,192 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Petpa 寵物補給站 - 全站 OpenAPI 3.0 規格手冊",
+    "description": "Petpa 寵物專屬賣場與平台管理系統 RESTful API。包含 MongoDB Atlas 串接、特寵幼貓多樣式相簿牆與短片、管理員物流調度中心 (出貨/路上/到貨/完成)、退貨雙重審核 (賣家與平台雙方均需同意) 以及統一登入自動分流機制。",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Petpa 系統工程架構團隊",
+      "email": "dev@petpa.tw",
+      "url": "https://area.petpa.tw/shop"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://area.petpa.tw/shop",
+      "description": "生產環境 (Production with basePath /shop)"
+    },
+    {
+      "url": "http://localhost:3000/shop",
+      "description": "本地開發測試環境 (Local Turbopack)"
+    }
+  ],
+  "paths": {
+    "/api/v1/shop/{slug}": {
+      "get": {
+        "summary": "獲取指定貓舍/賣家專屬賣場前台資料",
+        "description": "優先連線至 MongoDB Atlas 查詢 catteries, kittens, products。若資料庫離線則無縫回退至記憶體備援。",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "description": "賣家專屬短網址代稱 (例如: meow-house, golden-paw)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功獲取賣場、幼貓展示與上架商品資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catteries/{slug}": {
+      "get": {
+        "summary": "取得貓舍/店家完整設定資訊",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "成功獲取店家資料" }
+        }
+      },
+      "put": {
+        "summary": "更新貓舍裝修主題、特寵卡片樣式與直播設定 (同步至 MongoDB Atlas)",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatteryUpdatePayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "更新成功" }
+        }
+      }
+    },
+    "/api/v1/kittens": {
+      "get": {
+        "summary": "查詢特定寵物業合法幼貓清單 (支援多圖相簿與短片)",
+        "parameters": [
+          {
+            "name": "catteryId",
+            "in": "query",
+            "required": false,
+            "description": "指定貓舍識別碼",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "成功獲取幼貓清單" }
+        }
+      },
+      "post": {
+        "summary": "新增活體幼貓卡片與合約檔案 (寫入 MongoDB Atlas)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KittenPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "幼貓上架成功" }
+        }
+      }
+    },
+    "/api/v1/admin/sellers": {
+      "get": {
+        "summary": "管理員獲取全站合作店家名單 (含停權狀態與特寵證號)",
+        "responses": {
+          "200": { "description": "成功獲取賣家列表" }
+        }
+      },
+      "post": {
+        "summary": "管理員開通新合作賣家 (寫入 Atlas 與審計日誌)",
+        "responses": {
+          "201": { "description": "成功建立新賣家" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ShopResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "source": { "type": "string", "example": "mongodb_atlas" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "cattery": { "type": "object" },
+              "kittens": { "type": "array", "items": { "$ref": "#/components/schemas/KittenPayload" } },
+              "products": { "type": "array", "items": { "type": "object" } }
+            }
+          }
+        }
+      },
+      "CatteryUpdatePayload": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "bannerPreset": { "type": "string", "example": "warm-amber" },
+          "kittenCardStyle": { "type": "string", "enum": ["polaroid", "pedigree", "reel", "macaron"] },
+          "petliveRoomId": { "type": "string" },
+          "enableVideoAd": { "type": "boolean" },
+          "videoUrl": { "type": "string" },
+          "activeWidgets": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "KittenPayload": {
+        "type": "object",
+        "required": ["name", "breed", "gender", "price"],
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string", "example": "珍珠 (Mochi)" },
+          "breed": { "type": "string", "example": "英國短毛貓 (藍白)" },
+          "gender": { "type": "string", "enum": ["公", "母"] },
+          "birthday": { "type": "string", "example": "2026-06-12" },
+          "price": { "type": "number", "example": 38000 },
+          "microchipNumber": { "type": "string", "example": "900138000123456" },
+          "themeStyle": { "type": "string", "enum": ["polaroid", "pedigree", "reel", "macaron"] },
+          "images": { "type": "array", "items": { "type": "string" } },
+          "videoUrl": { "type": "string" },
+          "traits": { "type": "array", "items": { "type": "string" } },
+          "awards": { "type": "array", "items": { "type": "string" } },
+          "pdfUrl": { "type": "string" }
+        }
+      }
+    }
+  }
+}

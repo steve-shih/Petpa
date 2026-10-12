@@ -657,3 +657,100 @@ body {
   position: relative;
   z-index: 1;
 }
+
+/* ==================== 📱 手機端 (Mobile RWD, 375px ~ 430px) 全站適配 ==================== */
+@media (max-width: 768px) {
+  /* 側邊導航與主要內容適配 */
+  .admin-sidebar {
+    position: static !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+  .admin-content {
+    padding: 16px !important;
+  }
+
+  /* 彈窗在手機端的全螢幕適配 */
+  .modal-overlay {
+    padding: 12px;
+    align-items: flex-end; /* 手機端採底部抽屜或整頁覆蓋感 */
+  }
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    padding: 20px 16px !important;
+    margin: 0 auto;
+  }
+
+  /* 浮動購物車在手機端的邊距 */
+  .floating-cart-inner {
+    margin: 0 10px 10px !important;
+    padding: 10px 14px !important;
+  }
+  .floating-cart-inner .cart-btn {
+    padding: 10px 16px !important;
+    font-size: 13.5px !important;
+  }
+
+  /* 表格在手機端支援平滑觸控水平滑動 */
+  .kpi-card table {
+    min-width: 680px;
+  }
+  .kpi-card {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 賣場 Header 在手機端排版 */
+  .store-header-inner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  /* 登入卡片在手機端 */
+  .login-card {
+    padding: 28px 20px !important;
+    border-radius: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* iPhone SE ~ 15 Pro 寬度 (375px ~ 430px) 微調 */
+  body {
+    font-size: 13px;
+  }
+
+  h1 {
+    font-size: 20px !important;
+  }
+
+  /* 網格自動改為單欄或彈性兩欄 */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .product-card .card-img {
+    height: 140px !important;
+  }
+
+  .product-card .card-body {
+    padding: 10px !important;
+  }
+
+  /* 結帳頁按鈕滿版 */
+  .btn-primary {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+
+  /* 快速登入切換按鈕在手機端換行 */
+  .quick-login-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+

@@ -5,7 +5,7 @@ require('dotenv').config({ path: '.env.local' });
 // let's just write a quick script that reads from mock-data or we can run it via next dev?
 // Actually, it's easier to run this via `npx tsx scripts/seed-atlas.ts`
 
-import { catteries, products, categories, returnOrders, inventoryLogs, auditLogs, orders, adminAccounts, profitSplitConfig, trendData } from '../src/lib/mock-data';
+import { catteries, products, categories, returnOrders, inventoryLogs, auditLogs, orders, kittens, adminAccounts, profitSplitConfig, trendData } from '../src/lib/mock-data';
 
 const uri = process.env.MONGODB_URI;
 
@@ -29,16 +29,25 @@ async function run() {
     console.log("Seeding categories...");
     await db.collection('categories').deleteMany({});
     await db.collection('categories').insertMany(categories);
+
+    console.log("Seeding kittens (with photo walls & videos)...");
+    await db.collection('kittens').deleteMany({});
+    await db.collection('kittens').insertMany(kittens);
     
-    console.log("Seeding orders...");
+    console.log("Seeding orders (with logistics tracking)...");
     await db.collection('orders').deleteMany({});
     await db.collection('orders').insertMany(orders);
 
+    console.log("Seeding returnOrders (dual-approval workflow)...");
+    await db.collection('returnOrders').deleteMany({});
+    await db.collection('returnOrders').insertMany(returnOrders);
+
     console.log("Seeding messages/auditLogs...");
     await db.collection('messages').deleteMany({});
-    // Convert auditLogs to some pending messages
+    await db.collection('auditLogs').deleteMany({});
+    await db.collection('auditLogs').insertMany(auditLogs);
     
-    console.log("Seed complete!");
+    console.log("Seed complete! All data successfully synced into MongoDB Atlas!");
   } finally {
     await client.close();
   }
