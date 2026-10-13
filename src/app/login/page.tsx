@@ -4,6 +4,13 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { catteries } from '@/lib/mock-data';
+import { envFeatures, isCapabilityReady, capabilityLabel } from '@/lib/env';
+
+// 展示站才預填示範資料；正式站一律空白
+const demo = envFeatures.prefillDemoCredentials;
+// 正式站：真實登入 / KYC 尚未完成前，登入相關表單全部鎖住
+const authReady = isCapabilityReady('realAuth');
+const kycReady = isCapabilityReady('sellerKyc');
 
 export default function UnifiedLoginPage() {
   const router = useRouter();
@@ -12,20 +19,20 @@ export default function UnifiedLoginPage() {
   const [activeTab, setActiveTab] = useState<'login' | 'register_buyer' | 'apply_seller'>('login');
 
   // 登入表單狀態
-  const [email, setEmail] = useState('admin@petpa.tw');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState(demo ? 'admin@petpa.tw' : '');
+  const [password, setPassword] = useState(demo ? 'admin123' : '');
 
   // 買家註冊表單狀態
-  const [buyerForm, setBuyerForm] = useState({
+  const [buyerForm, setBuyerForm] = useState(demo ? {
     name: '王小華',
     email: 'hua@example.com',
     password: 'password123',
     phone: '0912-345-678',
     address: '台北市信義區松仁路 100 號 12 樓',
-  });
+  } : { name: '', email: '', password: '', phone: '', address: '' });
 
   // 賣家入駐申請表單狀態
-  const [sellerApplyForm, setSellerApplyForm] = useState({
+  const [sellerApplyForm, setSellerApplyForm] = useState(demo ? {
     catteryName: '皇冠名貓坊',
     sellerType: 'cattery' as 'cattery' | 'influencer',
     licenseNumber: '特寵業字第 D1130666 號',
@@ -33,6 +40,14 @@ export default function UnifiedLoginPage() {
     email: 'crown@petpa.tw',
     phone: '0988-777-666',
     description: '專育賽級曼赤肯與金漸層英短，申請加入 Petpa 合作賣場。',
+  } : {
+    catteryName: '',
+    sellerType: 'cattery' as 'cattery' | 'influencer',
+    licenseNumber: '',
+    contactName: '',
+    email: '',
+    phone: '',
+    description: '',
   });
 
   // 記錄前一個來源賣場 slug
@@ -83,6 +98,12 @@ export default function UnifiedLoginPage() {
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 正式站：真實登入尚未完成，禁止使用展示站的 localStorage 假登入
+    if (!authReady) {
+      alert(`🔒 正式站尚未開放登入：${capabilityLabel('realAuth')} 開發中`);
+      return;
+    }
+
     if (typeof window !== 'undefined') {
       localStorage.setItem('petpa_role', detectedRole);
       localStorage.setItem('petpa_auth_email', email);
@@ -113,6 +134,10 @@ export default function UnifiedLoginPage() {
   // 處理買家會員快速辦理註冊
   const handleBuyerRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!authReady) {
+      alert(`🔒 正式站尚未開放註冊：${capabilityLabel('realAuth')} 開發中`);
+      return;
+    }
     if (typeof window !== 'undefined') {
       localStorage.setItem('petpa_role', 'buyer');
       localStorage.setItem('petpa_auth_email', buyerForm.email);
@@ -125,6 +150,10 @@ export default function UnifiedLoginPage() {
   // 處理賣家向管理員申請入駐
   const handleSellerApply = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!kycReady) {
+      alert(`🔒 正式站尚未開放入駐申請：${capabilityLabel('sellerKyc')} 開發中`);
+      return;
+    }
     alert(`📨 合作商家申請已送出！\n店家名稱：${sellerApplyForm.catteryName}\n特寵字號：${sellerApplyForm.licenseNumber}\n系統管理員已收到您的入駐提報，審核完成後將為您開通專屬網址與控制台密碼！`);
     setActiveTab('login');
   };
@@ -200,10 +229,18 @@ export default function UnifiedLoginPage() {
           </button>
         </div>
 
+        {/* 正式站：登入尚未完成時的說明 */}
+        {!authReady && (
+          <div className="prod-lock-notice" style={{ marginBottom: 16 }}>
+            🔒 正式站登入功能準備中（{capabilityLabel('realAuth')}）。目前可先以訪客身份瀏覽各合作賣場。
+          </div>
+        )}
+
         {/* 1. 統一登入畫面 (自動識別三方身份) */}
         {activeTab === 'login' && (
           <form onSubmit={handleLoginSubmit}>
-            {/* 快速示範帶入按鈕 */}
+            {/* 快速示範帶入按鈕：只在展示站顯示 */}
+            {envFeatures.oneClickRoleSwitch && (
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 11.5, color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: 6 }}>
                 ⚡ 測試快捷帶入帳號 (系統將自動識別身份)：
@@ -261,6 +298,7 @@ export default function UnifiedLoginPage() {
                 </button>
               </div>
             </div>
+            )}
 
             {/* 即時身份識別徽章提醒 */}
             <div style={{

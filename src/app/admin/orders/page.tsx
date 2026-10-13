@@ -2,6 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { orders as initialOrders, type Order } from '@/lib/mock-data';
+import { envFeatures, isCapabilityReady, capabilityLabel } from '@/lib/env';
+
+// 展示站：可手動派車、手填模擬單號；正式站：必須等物流 API 自動取號
+const manualDispatchAllowed = envFeatures.mockLogisticsWebhook || isCapabilityReady('logisticsApi');
 
 export default function AdminOrdersPage() {
   const [orderList, setOrderList] = useState<Order[]>(initialOrders);
@@ -87,6 +91,10 @@ export default function AdminOrdersPage() {
 
   const handleConfirmDispatch = () => {
     if (!dispatchModalOrder) return;
+    if (!manualDispatchAllowed) {
+      alert(`🔒 正式站不允許手填單號：${capabilityLabel('logisticsApi')} 開發中`);
+      return;
+    }
     updateLogisticsStatus(dispatchModalOrder._id, 'InTransit', trackingNumberInput, logisticsProviderInput);
     setDispatchModalOrder(null);
   };
@@ -263,6 +271,17 @@ export default function AdminOrdersPage() {
               為訂單 <strong>{dispatchModalOrder.orderNumber}</strong> 指派物流承運商與追蹤號碼，狀態將變更為「路上 (InTransit)」。
             </p>
 
+            {envFeatures.mockLogisticsWebhook && (
+              <div style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', color: '#3730A3', borderRadius: 8, padding: '8px 12px', fontSize: 12, marginBottom: 12 }}>
+                🧪 展示站：單號為模擬產生，正式站將由物流 API 自動取號並回傳貨態
+              </div>
+            )}
+            {!manualDispatchAllowed && (
+              <div className="prod-lock-notice" style={{ marginBottom: 12 }}>
+                🔒 正式站需串接物流 API 後才能出貨（{capabilityLabel('logisticsApi')}）
+              </div>
+            )}
+
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>物流承運商 *</label>
               <select 
@@ -295,7 +314,7 @@ export default function AdminOrdersPage() {
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button className="btn-admin btn-admin-outline" onClick={() => setDispatchModalOrder(null)}>取消</button>
-              <button className="btn-primary" onClick={handleConfirmDispatch}>確認出貨 (正式上路)</button>
+              <button className="btn-primary" onClick={handleConfirmDispatch} disabled={!manualDispatchAllowed} style={{ opacity: manualDispatchAllowed ? 1 : 0.5 }}>確認出貨 (正式上路)</button>
             </div>
           </div>
         </div>

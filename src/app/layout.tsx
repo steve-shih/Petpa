@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import EnvBanner from "@/components/EnvBanner";
 
 export const metadata: Metadata = {
   title: "Petpa 寵物補給站 | 合作貓舍一頁式購物平台",
@@ -19,6 +20,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased">
+        <EnvBanner />
         {children}
       </body>
     </html>

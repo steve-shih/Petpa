@@ -58,27 +58,47 @@
     { "id": "macaron", "name": "甜心粉彩馬卡龍", "badge": "🧁 甜心馬卡龍萌寵" }
   ],
   "environments": {
-    "current": "staging",
+    "_說明": "實際環境由建置時的 NEXT_PUBLIC_APP_ENV 決定 (staging | production)，未設定時預設 staging。兩個環境必須是兩個網址、兩個資料庫。",
+    "default": "staging",
     "staging": {
+      "label": "展示站 STAGING",
       "description": "測試與展示環境，開放測試便捷工具、模擬金流與一鍵切換角色",
+      "siteUrl": "https://area.petpa.tw/shop",
+      "dbName": "PETPA",
+      "showEnvBanner": true,
       "oneClickRoleSwitch": true,
+      "prefillDemoCredentials": true,
       "mockLogisticsWebhook": true,
       "mockBankTransferVerification": true,
-      "allowUnregisteredCheckout": true,
-      "showTestHelperFloatingButtons": true,
+      "allowMockDataFallback": true,
       "requireRealKycForSellers": false,
-      "requireDualEsignForPets": false
+      "requireDualEsignForPets": false,
+      "requireVirtualAtmWebhooks": false
     },
     "production": {
+      "label": "正式站 PRODUCTION",
       "description": "正式營運站，嚴格關閉所有測試捷徑，啟用真實金流、電子發票、物流API、KYC與合約簽署",
+      "siteUrl": "",
+      "dbName": "PETPA_PROD",
+      "showEnvBanner": false,
       "oneClickRoleSwitch": false,
+      "prefillDemoCredentials": false,
       "mockLogisticsWebhook": false,
       "mockBankTransferVerification": false,
-      "allowUnregisteredCheckout": false,
-      "showTestHelperFloatingButtons": false,
+      "allowMockDataFallback": false,
       "requireRealKycForSellers": true,
       "requireDualEsignForPets": true,
       "requireVirtualAtmWebhooks": true
     }
+  },
+  "productionReadiness": {
+    "_說明": "正式站上線前必須全部 ready=true。ready=false 的功能在正式站會自動鎖住，不會退回展示站的假流程。",
+    "realAuth": { "label": "真實登入驗證 (密碼雜湊 + JWT Cookie + 2FA)", "ready": false },
+    "ordersInAtlas": { "label": "訂單/退貨/物流狀態寫入 MongoDB (目前在瀏覽器 localStorage)", "ready": false },
+    "atmVirtualAccount": { "label": "ATM 每筆訂單專屬虛擬帳號 + 銀行入帳 Webhook", "ready": false },
+    "logisticsApi": { "label": "黑貓/綠界物流 API 自動取號與貨態回傳", "ready": false },
+    "sellerKyc": { "label": "賣家實名 KYC 文件上傳與審核", "ready": false },
+    "petEsign": { "label": "特寵活體買賣電子契約簽署", "ready": false },
+    "productionSiteUrl": { "label": "正式站網址與 SSL 憑證", "ready": false }
   }
 }

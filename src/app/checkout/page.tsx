@@ -3,11 +3,18 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { adminBankAccount } from '@/lib/mock-data';
+import { envFeatures, isCapabilityReady, capabilityLabel } from '@/lib/env';
+
+// 正式站：ATM 虛擬帳號 + 訂單寫入資料庫都完成，才開放下單；展示站永遠可以模擬下單
+const atmReady = isCapabilityReady('atmVirtualAccount') && isCapabilityReady('ordersInAtlas');
+const atmLockReason = !isCapabilityReady('atmVirtualAccount')
+  ? capabilityLabel('atmVirtualAccount')
+  : capabilityLabel('ordersInAtlas');
 
 export default function CheckoutPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 買家登入狀態
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [buyerAccount] = useState({ name: '陳小美', phone: '0988-123-456', email: 'may@example.com', address: '台北市信義區忠孝東路五段 100 號 8 樓' });
+  const [buyerAccount, setBuyerAccount] = useState({ name: '陳小美', phone: '0988-123-456', email: 'may@example.com', address: '台北市信義區忠孝東路五段 100 號 8 樓' });
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '' });
   const [isPaid, setIsPaid] = useState(false);
   const [cartItems, setCartItems] = useState<any[]>([]);
@@ -38,6 +45,18 @@ export default function CheckoutPage() {
       if (catteryName) {
         setSavedCatteryName(catteryName);
       }
+
+      // 已從登入頁登入的買家：直接帶入會員資料，不要再當成訪客
+      const storedBuyer = localStorage.getItem('petpa_buyer_user');
+      if (storedBuyer && localStorage.getItem('petpa_role') === 'buyer') {
+        try {
+          const u = JSON.parse(storedBuyer);
+          const account = { name: u.name || '', phone: u.phone || '', email: u.email || '', address: u.address || '' };
+          setBuyerAccount(account);
+          setForm(account);
+          setIsLoggedIn(true);
+        } catch (e) {}
+      }
     }
   }, []);
 
@@ -48,6 +67,11 @@ export default function CheckoutPage() {
   };
 
   const handleCreateOrder = () => {
+    // 正式站未就緒：不允許用展示站的 localStorage 假訂單
+    if (!atmReady) {
+      alert(`🔒 正式站尚未開放下單：${atmLockReason} 開發中`);
+      return;
+    }
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -239,7 +263,7 @@ export default function CheckoutPage() {
             <span>💳</span> 付款方式 (第三方金流串接)
           </h2>
           {[
-            { name: 'ATM 銀行匯款 (管理員指定對帳戶頭)', status: '✅ 正常可用 (支援自動對帳發貨)', disabled: false, isAtm: true },
+            { name: 'ATM 銀行匯款 (管理員指定對帳戶頭)', status: atmReady ? (envFeatures.mockBankTransferVerification ? '✅ 可用 (展示站模擬下單)' : '✅ 正常可用') : '🔒 正式站準備中', disabled: !atmReady, isAtm: true },
             { name: '信用卡 Visa / Master (線上即時授權)', status: '🔒 暫時灰色未開放 (尚未開發)', disabled: true },
             { name: '綠界金流 ECPay (多元支付閘道)', status: '🔒 暫時灰色未開放 (尚未開發)', disabled: true },
             { name: 'LINE Pay 行動支付', status: '🔒 暫時灰色未開放 (尚未開發)', disabled: true },
@@ -297,8 +321,13 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <button className="btn-primary" onClick={handleCreateOrder} style={{ width: '100%', padding: '16px', fontSize: 16, borderRadius: 'var(--radius-lg)' }}>
-          {isLoggedIn ? `確認下單支付 NT$ ${cartTotal.toLocaleString()} (${paymentMethod.split(' ')[0]})` : `🔒 登入買家帳號並進行下單 (NT$ ${cartTotal.toLocaleString()})`}
+        {!atmReady && (
+          <div className="prod-lock-notice" style={{ marginBottom: 12 }}>
+            🔒 正式站線上下單準備中（{atmLockReason}）。完成後即開放結帳。
+          </div>
+        )}
+        <button className="btn-primary" onClick={handleCreateOrder} disabled={!atmReady} style={{ width: '100%', padding: '16px', fontSize: 16, borderRadius: 'var(--radius-lg)', opacity: atmReady ? 1 : 0.5, cursor: atmReady ? 'pointer' : 'not-allowed' }}>
+          {!atmReady ? '🔒 正式站尚未開放下單' : isLoggedIn ? `確認下單支付 NT$ ${cartTotal.toLocaleString()} (${paymentMethod.split(' ')[0]})` : `🔒 登入買家帳號並進行下單 (NT$ ${cartTotal.toLocaleString()})`}
         </button>
         <p style={{ textAlign: 'center', fontSize: 11.5, color: 'var(--color-text-muted)', marginTop: 14 }}>
           ⚠️ 買家可自由瀏覽賣場與加入購物車，實際結帳需進行授權登入驗證。
@@ -315,9 +344,12 @@ export default function CheckoutPage() {
               依據交易保障規範，實際結帳前請先登入或驗證買家身份。
             </p>
 
-            <button className="btn-primary" onClick={handleQuickBuyerLogin} style={{ width: '100%', padding: 14, fontSize: 14, marginBottom: 10 }}>
-              ⚡ 一鍵測試買家快速登入 ({buyerAccount.name})
-            </button>
+            {/* 一鍵測試登入：只在展示站顯示 */}
+            {envFeatures.oneClickRoleSwitch && (
+              <button className="btn-primary" onClick={handleQuickBuyerLogin} style={{ width: '100%', padding: 14, fontSize: 14, marginBottom: 10 }}>
+                ⚡ 一鍵測試買家快速登入 ({buyerAccount.name})
+              </button>
+            )}
 
             <Link href="/login" style={{ textDecoration: 'none' }}>
               <button className="btn-admin btn-admin-outline" style={{ width: '100%', padding: 12, fontSize: 13.5 }}>
